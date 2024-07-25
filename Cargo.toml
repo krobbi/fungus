@@ -1,0 +1,20 @@
+[package]
+name = "fungus"
+version = "0.1.0"
+authors = ["Chris Roberts"]
+edition = "2021"
+description = "Compiling the uncompilable."
+repository = "https://github.com/krobbi/fungus"
+license = "MIT"
+keywords = ["befunge"]
+categories = ["command-line-utilities", "compilers"]
+publish = false
+
+[dependencies]
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+opt-level = 3
+panic = "abort"
+strip = "symbols"
