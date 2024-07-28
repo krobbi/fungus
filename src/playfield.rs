@@ -109,8 +109,8 @@ mod tests {
         check("space after\n ", 11, 2);
         check("mixed\ncha\racters\r\n", 10, 2);
         check("double\nlf\n\n", 6, 3);
-        check("double\nspaced \n \n", 7, 3);
         check("double\r\ncrlf\r\n\r\n", 6, 3);
+        check("double\nspaced \n \n", 7, 3);
     }
 
     /// Create a new playfield from source code with an expected size.
