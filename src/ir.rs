@@ -69,8 +69,11 @@ impl Block {
 
 /// A basic block's exit point.
 enum Exit {
-    /// An unconditional jump to a basic block.
+    /// An unconditional jump.
     Jump(Pointer),
+
+    /// A conditional jump based on whether a value popped from a stack is zero.
+    If { non_zero: Pointer, zero: Pointer },
 
     /// A program ending.
     End,
@@ -91,6 +94,8 @@ impl Exit {
             '<' => Self::from_direction(Direction::Left, playfield, pointer),
             '^' => Self::from_direction(Direction::Up, playfield, pointer),
             'v' => Self::from_direction(Direction::Down, playfield, pointer),
+            '_' => Self::from_if(Direction::Left, Direction::Right, playfield, pointer),
+            '|' => Self::from_if(Direction::Up, Direction::Down, playfield, pointer),
             '#' => {
                 let mut pointer = pointer.clone();
                 pointer.advance(playfield);
@@ -104,16 +109,26 @@ impl Exit {
 
     /// Create a new exit from a direction, a playfield, and a pointer.
     fn from_direction(direction: Direction, playfield: &Playfield, pointer: &Pointer) -> Self {
-        let mut pointer = pointer.clone();
-        pointer.face(direction);
-        pointer.advance(playfield);
-        Self::Jump(pointer)
+        Self::Jump(pointer.to_facing(direction, playfield))
+    }
+
+    /// Create a new exit from if directions, a playfield, and a pointer.
+    fn from_if(
+        non_zero: Direction,
+        zero: Direction,
+        playfield: &Playfield,
+        pointer: &Pointer,
+    ) -> Self {
+        let non_zero = pointer.to_facing(non_zero, playfield);
+        let zero = pointer.to_facing(zero, playfield);
+        Self::If { non_zero, zero }
     }
 
     /// Get the next pointers as a vector.
     fn pointers(&self) -> Vec<Pointer> {
         match self {
             Self::Jump(pointer) => vec![pointer.clone()],
+            Self::If { non_zero, zero } => vec![non_zero.clone(), zero.clone()],
             Self::End => vec![],
         }
     }
@@ -123,6 +138,7 @@ impl fmt::Display for Exit {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Jump(pointer) => write!(f, "jump {pointer}"),
+            Self::If { non_zero, zero } => write!(f, "if {non_zero} else {zero}"),
             Self::End => write!(f, "end"),
         }
     }

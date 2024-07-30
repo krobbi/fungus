@@ -16,6 +16,14 @@ pub struct Pointer {
 }
 
 impl Pointer {
+    /// Create a clone of the pointer advanced in a direction on a playfield.
+    pub fn to_facing(&self, direction: Direction, playfield: &Playfield) -> Self {
+        let mut pointer = self.clone();
+        pointer.face(direction);
+        pointer.advance(playfield);
+        pointer
+    }
+
     /// Get the position.
     pub fn position(&self) -> (usize, usize) {
         (self.x, self.y)
