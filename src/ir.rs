@@ -1,6 +1,9 @@
 use std::{collections::HashMap, fmt};
 
-use crate::{playfield::Playfield, pointer::Pointer};
+use crate::{
+    playfield::Playfield,
+    pointer::{Direction, Pointer},
+};
 
 /// An intermediate program representation.
 pub struct Program {
@@ -81,6 +84,10 @@ impl Exit {
     /// Create a new exit from a command, a playfield, and a pointer.
     fn from_command(command: char, playfield: &Playfield, pointer: &Pointer) -> Self {
         match command {
+            '>' => Self::from_direction(Direction::Right, playfield, pointer),
+            '<' => Self::from_direction(Direction::Left, playfield, pointer),
+            '^' => Self::from_direction(Direction::Up, playfield, pointer),
+            'v' => Self::from_direction(Direction::Down, playfield, pointer),
             '#' => {
                 let mut pointer = pointer.clone();
                 pointer.advance(playfield);
@@ -89,6 +96,14 @@ impl Exit {
             }
             _ => Self::new(playfield, pointer),
         }
+    }
+
+    /// Create a new exit from a direction, a playfield, and a pointer.
+    fn from_direction(direction: Direction, playfield: &Playfield, pointer: &Pointer) -> Self {
+        let mut pointer = pointer.clone();
+        pointer.face(direction);
+        pointer.advance(playfield);
+        Self::Jump(pointer)
     }
 
     /// Get the next pointers as a vector.

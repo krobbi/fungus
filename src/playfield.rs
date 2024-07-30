@@ -68,6 +68,8 @@ impl ops::Index<&Pointer> for Playfield {
 
 #[cfg(test)]
 mod tests {
+    use crate::pointer::Direction;
+
     use super::*;
 
     /// Test that empty playfields contain a single null character.
@@ -130,22 +132,34 @@ mod tests {
     /// Test that a playfield can be indexed with wrapping.
     #[test]
     fn test_index() {
-        /// Check that a pointer indexes to a given character before advancing.
+        /// Check that a pointer indexes to a given character after advancing.
         fn check(playfield: &Playfield, pointer: &mut Pointer, character: char) {
+            pointer.advance(playfield);
+
             assert_eq!(
                 playfield[pointer], character,
                 "playfield character is not {character}"
             );
-
-            pointer.advance(playfield);
         }
 
-        let playfield = new_playfield("abc", 3, 1);
+        let playfield = new_playfield("012\n345\n678", 3, 3);
         let mut pointer = Pointer::default();
-        check(&playfield, &mut pointer, 'a');
-        check(&playfield, &mut pointer, 'b');
-        check(&playfield, &mut pointer, 'c');
-        check(&playfield, &mut pointer, 'a');
+
+        pointer.face(Direction::Left);
+        check(&playfield, &mut pointer, '2');
+        check(&playfield, &mut pointer, '1');
+
+        pointer.face(Direction::Up);
+        check(&playfield, &mut pointer, '7');
+        check(&playfield, &mut pointer, '4');
+
+        pointer.face(Direction::Right);
+        check(&playfield, &mut pointer, '5');
+        check(&playfield, &mut pointer, '3');
+
+        pointer.face(Direction::Down);
+        check(&playfield, &mut pointer, '6');
+        check(&playfield, &mut pointer, '0');
     }
 
     /// Test that indexing a playfield out of bounds causes a panic.
