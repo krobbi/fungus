@@ -46,10 +46,9 @@ The following algorithm can be used to build a representation of the program:
 1. Add the initial state to a set of unexplored states.
 2. While there are unexplored states:
    1. Remove a state from the set of unexplored states.
-   2. Build a basic block for the state.
-   3. For each state in the basic block's possible next states:
-      1. If there is no basic block for the state:
-         1. Add the state to the set of unexplored states.
+   2. If there is no basic block for the removed state:
+      1. Build a basic block for the state.
+      2. Add the basic block's exit states to the set of unexplored states.
 
 This reduces the entire program to a finite state machine, which is much more
 machine-friendly, but wouldn't give great performance if compiled right away.

@@ -3,7 +3,7 @@ use std::fmt;
 use crate::playfield::Playfield;
 
 /// An instruction pointer with a playfield position.
-#[derive(Clone, Default)]
+#[derive(Clone, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Pointer {
     /// The X position.
     x: usize,
