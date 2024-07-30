@@ -1,8 +1,12 @@
+mod ir;
 mod playfield;
+mod pointer;
 
 use std::{env, fs, process};
 
+use ir::Block;
 use playfield::Playfield;
+use pointer::Pointer;
 
 /// Run Fungus.
 fn main() {
@@ -11,11 +15,9 @@ fn main() {
         process::exit(1);
     });
 
-    println!(
-        "Playfield size: {}x{}",
-        playfield.width(),
-        playfield.height()
-    );
+    let pointer = Pointer::default();
+    let block = Block::new(&playfield, &pointer);
+    println!("{block}");
 }
 
 /// Load a playfield from command line arguments.
