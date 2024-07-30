@@ -71,6 +71,9 @@ impl Block {
 enum Exit {
     /// An unconditional jump to a basic block.
     Jump(Pointer),
+
+    /// A program ending.
+    End,
 }
 
 impl Exit {
@@ -94,6 +97,7 @@ impl Exit {
                 pointer.advance(playfield);
                 Self::Jump(pointer)
             }
+            '@' => Self::End,
             _ => Self::new(playfield, pointer),
         }
     }
@@ -110,6 +114,7 @@ impl Exit {
     fn pointers(&self) -> Vec<Pointer> {
         match self {
             Self::Jump(pointer) => vec![pointer.clone()],
+            Self::End => vec![],
         }
     }
 }
@@ -117,7 +122,8 @@ impl Exit {
 impl fmt::Display for Exit {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Jump(pointer) => write!(f, "goto {pointer}"),
+            Self::Jump(pointer) => write!(f, "jump {pointer}"),
+            Self::End => write!(f, "end"),
         }
     }
 }
