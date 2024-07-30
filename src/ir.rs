@@ -25,7 +25,6 @@ impl Program {
             blocks.insert(pointer, block);
         }
 
-        let blocks = blocks;
         Self { blocks }
     }
 
@@ -33,7 +32,6 @@ impl Program {
     pub fn dump(&self) {
         let mut pointers: Vec<&Pointer> = self.blocks.keys().collect();
         pointers.sort();
-        let pointers = pointers;
         let mut pointers = pointers.iter().peekable();
 
         loop {
@@ -58,8 +56,10 @@ struct Block {
 impl Block {
     /// Create a new basic block from a playfield and a pointer.
     fn new(playfield: &Playfield, pointer: &Pointer) -> Self {
+        let command = playfield[pointer];
+
         Self {
-            exit: Exit::new(playfield, pointer),
+            exit: Exit::from_command(command, playfield, pointer),
         }
     }
 }
@@ -75,8 +75,20 @@ impl Exit {
     fn new(playfield: &Playfield, pointer: &Pointer) -> Self {
         let mut pointer = pointer.clone();
         pointer.advance(playfield);
-        let pointer = pointer;
         Self::Jump(pointer)
+    }
+
+    /// Create a new exit from a command, a playfield, and a pointer.
+    fn from_command(command: char, playfield: &Playfield, pointer: &Pointer) -> Self {
+        match command {
+            '#' => {
+                let mut pointer = pointer.clone();
+                pointer.advance(playfield);
+                pointer.advance(playfield);
+                Self::Jump(pointer)
+            }
+            _ => Self::new(playfield, pointer),
+        }
     }
 
     /// Get the next pointers as a vector.

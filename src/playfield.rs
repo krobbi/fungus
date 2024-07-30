@@ -1,3 +1,7 @@
+use std::ops;
+
+use crate::pointer::Pointer;
+
 /// A 2D grid of characters.
 pub struct Playfield {
     /// The width in characters.
@@ -7,8 +11,6 @@ pub struct Playfield {
     height: usize,
 
     /// The characters.
-    // TODO: Remove this attribute after playfield characters are used.
-    #[allow(dead_code)]
     cells: Vec<char>,
 }
 
@@ -22,7 +24,6 @@ impl Playfield {
             width = line.len().max(width);
         }
 
-        let width = width;
         let height = source.len().max(1);
         let mut cells = vec!['\0'; width * height];
 
@@ -31,8 +32,6 @@ impl Playfield {
                 cells[y * width + x] = character;
             }
         }
-
-        let cells = cells;
 
         Self {
             width,
@@ -49,6 +48,21 @@ impl Playfield {
     /// Get the height in cells.
     pub fn height(&self) -> usize {
         self.height
+    }
+}
+
+impl ops::Index<&Pointer> for Playfield {
+    type Output = char;
+
+    fn index(&self, index: &Pointer) -> &Self::Output {
+        let (x, y) = index.position();
+
+        assert!(
+            x < self.width && y < self.height,
+            "playfield index out of bounds"
+        );
+
+        &self.cells[y * self.width + x]
     }
 }
 
@@ -111,6 +125,40 @@ mod tests {
         check("double\nlf\n\n", 6, 3);
         check("double\r\ncrlf\r\n\r\n", 6, 3);
         check("double\nspaced \n \n", 7, 3);
+    }
+
+    /// Test that a playfield can be indexed with wrapping.
+    #[test]
+    fn test_index() {
+        /// Check that a pointer indexes to a given character before advancing.
+        fn check(playfield: &Playfield, pointer: &mut Pointer, character: char) {
+            assert_eq!(
+                playfield[pointer], character,
+                "playfield character is not {character}"
+            );
+
+            pointer.advance(playfield);
+        }
+
+        let playfield = new_playfield("abc", 3, 1);
+        let mut pointer = Pointer::default();
+        check(&playfield, &mut pointer, 'a');
+        check(&playfield, &mut pointer, 'b');
+        check(&playfield, &mut pointer, 'c');
+        check(&playfield, &mut pointer, 'a');
+    }
+
+    /// Test that indexing a playfield out of bounds causes a panic.
+    #[test]
+    #[should_panic]
+    fn test_index_out_of_bounds() {
+        let playfield = new_playfield("01", 2, 1);
+        let mut pointer = Pointer::default();
+        pointer.advance(&playfield);
+
+        // The playfield needs to be swapped out to work around the wrapping.
+        let playfield = new_playfield("0\n1", 1, 2);
+        playfield[&pointer];
     }
 
     /// Create a new playfield from source code with an expected size.

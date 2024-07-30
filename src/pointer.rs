@@ -13,6 +13,11 @@ pub struct Pointer {
 }
 
 impl Pointer {
+    /// Get the position.
+    pub fn position(&self) -> (usize, usize) {
+        (self.x, self.y)
+    }
+
     /// Advance the pointer by one character on a playfield.
     pub fn advance(&mut self, playfield: &Playfield) {
         self.x = if self.x == playfield.width() - 1 {
@@ -78,6 +83,18 @@ mod tests {
         /// Advance the pointer with an expected target position.
         fn advance(&mut self, x: usize, y: usize) {
             self.pointer.advance(&self.playfield);
+            let (getter_x, getter_y) = self.pointer.position();
+
+            assert_eq!(
+                getter_x, self.pointer.x,
+                "pointer x position getter does not match property"
+            );
+
+            assert_eq!(
+                getter_y, self.pointer.y,
+                "pointer y position getter does not match property"
+            );
+
             assert_eq!(self.pointer.x, x, "pointer x position is not {x}");
             assert_eq!(self.pointer.y, y, "pointer y position is not {y}");
         }
