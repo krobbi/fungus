@@ -72,6 +72,9 @@ enum Exit {
     /// An unconditional jump.
     Jump(Pointer),
 
+    /// A random jump.
+    Random(Pointer, Pointer, Pointer, Pointer),
+
     /// A conditional jump based on whether a value popped from a stack is zero.
     If { non_zero: Pointer, zero: Pointer },
 
@@ -94,6 +97,13 @@ impl Exit {
             '<' => Self::from_direction(Direction::Left, playfield, pointer),
             '^' => Self::from_direction(Direction::Up, playfield, pointer),
             'v' => Self::from_direction(Direction::Down, playfield, pointer),
+            '?' => {
+                let p0 = pointer.to_facing(Direction::Right, playfield);
+                let p1 = pointer.to_facing(Direction::Down, playfield);
+                let p2 = pointer.to_facing(Direction::Left, playfield);
+                let p3 = pointer.to_facing(Direction::Up, playfield);
+                Self::Random(p0, p1, p2, p3)
+            }
             '_' => Self::from_if(Direction::Left, Direction::Right, playfield, pointer),
             '|' => Self::from_if(Direction::Up, Direction::Down, playfield, pointer),
             '#' => {
@@ -128,6 +138,7 @@ impl Exit {
     fn pointers(&self) -> Vec<Pointer> {
         match self {
             Self::Jump(pointer) => vec![pointer.clone()],
+            Self::Random(p0, p1, p2, p3) => vec![p0.clone(), p1.clone(), p2.clone(), p3.clone()],
             Self::If { non_zero, zero } => vec![non_zero.clone(), zero.clone()],
             Self::End => vec![],
         }
@@ -138,6 +149,7 @@ impl fmt::Display for Exit {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Jump(pointer) => write!(f, "jump {pointer}"),
+            Self::Random(p0, p1, p2, p3) => write!(f, "random {p0}, {p1}, {p2}, {p3}"),
             Self::If { non_zero, zero } => write!(f, "if {non_zero} else {zero}"),
             Self::End => write!(f, "end"),
         }
