@@ -2,7 +2,7 @@ use std::{collections::HashMap, fmt};
 
 use crate::{
     playfield::Playfield,
-    pointer::{Direction, Pointer},
+    pointer::{Direction, Mode, Pointer},
 };
 
 /// An intermediate program representation.
@@ -68,17 +68,24 @@ struct Block {
 impl Block {
     /// Create a new basic block from a playfield and a pointer.
     fn new(playfield: &Playfield, pointer: &Pointer) -> Self {
-        let command = playfield[pointer];
+        let (instructions, exit) = match (pointer.mode(), playfield[pointer]) {
+            (_, '"') => (None, Exit::new_string(playfield, pointer)),
+            (Mode::Command, command) => (
+                Instruction::new(command),
+                Exit::from_command(command, playfield, pointer),
+            ),
+            (Mode::String, value) => (
+                Some(Instruction::Push(i32::try_from(u32::from(value)).unwrap())),
+                Exit::new(playfield, pointer),
+            ),
+        };
 
-        let instructions = match Instruction::new(command) {
+        let instructions = match instructions {
             None => vec![],
             Some(instruction) => vec![instruction],
         };
 
-        Self {
-            instructions,
-            exit: Exit::from_command(command, playfield, pointer),
-        }
+        Self { instructions, exit }
     }
 }
 
@@ -134,6 +141,14 @@ impl Exit {
     /// Create a new exit from a playfield and a pointer.
     fn new(playfield: &Playfield, pointer: &Pointer) -> Self {
         let mut pointer = pointer.clone();
+        pointer.advance(playfield);
+        Self::Jump(pointer)
+    }
+
+    /// Create a new string exit from a playfield and a pointer.
+    fn new_string(playfield: &Playfield, pointer: &Pointer) -> Self {
+        let mut pointer = pointer.clone();
+        pointer.toggle_mode();
         pointer.advance(playfield);
         Self::Jump(pointer)
     }

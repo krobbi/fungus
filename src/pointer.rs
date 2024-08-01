@@ -13,6 +13,9 @@ pub struct Pointer {
 
     /// The direction.
     direction: Direction,
+
+    /// The mode.
+    mode: Mode,
 }
 
 impl Pointer {
@@ -27,6 +30,11 @@ impl Pointer {
     /// Get the position.
     pub fn position(&self) -> (usize, usize) {
         (self.x, self.y)
+    }
+
+    /// Get the mode.
+    pub fn mode(&self) -> Mode {
+        self.mode
     }
 
     /// Face the pointer in a direction.
@@ -67,6 +75,14 @@ impl Pointer {
             }
         }
     }
+
+    /// Toggle the mode.
+    pub fn toggle_mode(&mut self) {
+        self.mode = match self.mode {
+            Mode::Command => Mode::String,
+            Mode::String => Mode::Command,
+        };
+    }
 }
 
 impl PartialOrd for Pointer {
@@ -89,13 +105,23 @@ impl Ord for Pointer {
             Ordering::Greater => return Ordering::Greater,
         };
 
+        match self.mode.cmp(&other.mode) {
+            Ordering::Less => return Ordering::Less,
+            Ordering::Equal => (),
+            Ordering::Greater => return Ordering::Greater,
+        };
+
         self.direction.cmp(&other.direction)
     }
 }
 
 impl fmt::Display for Pointer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "x{}_y{}_{}", self.x, self.y, self.direction)
+        write!(
+            f,
+            "x{}_y{}_{}_{}",
+            self.x, self.y, self.mode, self.direction
+        )
     }
 }
 
@@ -127,6 +153,26 @@ impl fmt::Display for Direction {
     }
 }
 
+/// A mode used by a pointer.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum Mode {
+    /// A mode where the pointer executes characters as commands.
+    #[default]
+    Command,
+
+    /// A mode where the pointer pushes characters to the stack as values.
+    String,
+}
+
+impl fmt::Display for Mode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Command => write!(f, "command"),
+            Self::String => write!(f, "string"),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -142,6 +188,12 @@ mod tests {
             pointer.direction,
             Direction::Right,
             "default pointer direction is not right"
+        );
+
+        assert_eq!(
+            pointer.mode,
+            Mode::Command,
+            "default pointer mode is not command"
         );
     }
 
@@ -184,6 +236,45 @@ mod tests {
         tester.advance(0, 0);
     }
 
+    /// Test that pointers toggle to the expected modes.
+    #[test]
+    fn test_toggle_mode() {
+        /// Check that a pointer toggled to the expected mode.
+        fn check(pointer: &mut Pointer, mode: Mode) {
+            let (x, y) = pointer.position();
+            let direction = pointer.direction;
+            pointer.toggle_mode();
+
+            assert_eq!(
+                pointer.mode(),
+                pointer.mode,
+                "pointer mode getter does not match property"
+            );
+
+            assert_eq!(pointer.mode, mode, "pointer mode is not {mode}");
+
+            assert_eq!(
+                pointer.x, x,
+                "pointer changed x position while toggling mode"
+            );
+
+            assert_eq!(
+                pointer.y, y,
+                "pointer changed y position while toggling mode"
+            );
+
+            assert_eq!(
+                pointer.direction, direction,
+                "pointer changed direction while toggling mode"
+            );
+        }
+
+        let mut pointer = Pointer::default();
+        check(&mut pointer, Mode::String);
+        check(&mut pointer, Mode::Command);
+        check(&mut pointer, Mode::String);
+    }
+
     /// Tests pointer movement on a playfield.
     struct Tester {
         /// The playfield.
@@ -205,6 +296,7 @@ mod tests {
         /// Face the pointer in a direction.
         fn face(&mut self, direction: Direction) {
             let (x, y) = self.pointer.position();
+            let mode = self.pointer.mode;
             self.pointer.face(direction);
 
             assert_eq!(
@@ -221,11 +313,17 @@ mod tests {
                 self.pointer.y, y,
                 "pointer changed y position while turning"
             );
+
+            assert_eq!(
+                self.pointer.mode, mode,
+                "pointer changed mode while turning"
+            );
         }
 
         /// Advance the pointer with an expected target position.
         fn advance(&mut self, x: usize, y: usize) {
             let direction = self.pointer.direction;
+            let mode = self.pointer.mode;
             self.pointer.advance(&self.playfield);
             let (getter_x, getter_y) = self.pointer.position();
 
@@ -245,6 +343,11 @@ mod tests {
             assert_eq!(
                 self.pointer.direction, direction,
                 "pointer changed direction while advancing"
+            );
+
+            assert_eq!(
+                self.pointer.mode, mode,
+                "pointer changed mode while advancing"
             );
         }
     }
