@@ -40,7 +40,13 @@ impl Program {
         loop {
             let pointer = pointers.next().unwrap();
             println!("{pointer}:");
-            println!("\t{};", self.blocks.get(pointer).unwrap().exit);
+            let block = self.blocks.get(pointer).unwrap();
+
+            for instruction in &block.instructions {
+                println!("\t{instruction};");
+            }
+
+            println!("\t{};", block.exit);
 
             match pointers.peek() {
                 None => break,
@@ -52,6 +58,9 @@ impl Program {
 
 /// A basic block.
 struct Block {
+    /// The instructions.
+    instructions: Vec<Instruction>,
+
     /// The exit point.
     exit: Exit,
 }
@@ -61,8 +70,47 @@ impl Block {
     fn new(playfield: &Playfield, pointer: &Pointer) -> Self {
         let command = playfield[pointer];
 
+        let instructions = match Instruction::new(command) {
+            None => vec![],
+            Some(instruction) => vec![instruction],
+        };
+
         Self {
+            instructions,
             exit: Exit::from_command(command, playfield, pointer),
+        }
+    }
+}
+
+/// A basic block's instruction.
+enum Instruction {
+    /// An instruction to push a value to the stack.
+    Push(i32),
+}
+
+impl Instruction {
+    /// Create a new optional instruction from a command.
+    fn new(command: char) -> Option<Self> {
+        match command {
+            '0' => Some(Self::Push(0)),
+            '1' => Some(Self::Push(1)),
+            '2' => Some(Self::Push(2)),
+            '3' => Some(Self::Push(3)),
+            '4' => Some(Self::Push(4)),
+            '5' => Some(Self::Push(5)),
+            '6' => Some(Self::Push(6)),
+            '7' => Some(Self::Push(7)),
+            '8' => Some(Self::Push(8)),
+            '9' => Some(Self::Push(9)),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for Instruction {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Push(value) => write!(f, "push {value}"),
         }
     }
 }
@@ -75,7 +123,7 @@ enum Exit {
     /// A random jump.
     Random(Pointer, Pointer, Pointer, Pointer),
 
-    /// A conditional jump based on whether a value popped from a stack is zero.
+    /// A conditional jump based on whether a popped stack value is zero.
     If { non_zero: Pointer, zero: Pointer },
 
     /// A program ending.
