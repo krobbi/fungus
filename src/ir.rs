@@ -91,7 +91,64 @@ impl Block {
 
 /// A basic block's instruction.
 enum Instruction {
-    /// An instruction to push a value to the stack.
+    /// An instruction to pop two values, add them, and push the result.  
+    /// `[...][l][r]` -> `[...][l + r]`
+    Add,
+
+    /// An instruction to pop two values, subtract them, and push the result.  
+    /// `[...][l][r]` -> `[...][l - r]`
+    Subtract,
+
+    /// An instruction to pop two values, multiply them, and push the result.  
+    /// `[...][l][r]` -> `[...][l * r]`
+    Multiply,
+
+    /// An instruction to pop two values, divide them, and push the result.  
+    /// `[...][l][r]` -> `[...][floor(l / r)]`
+    Divide,
+
+    /// An instruction to pop two values, modulo them, and push the result.  
+    /// `[...][l][r]` -> `[...][l % r]`
+    Modulo,
+
+    /// An instruction to pop a value, logically negate it, and push it.  
+    /// `[...][value]` -> `[...][value == 0 ? 1 : 0]`
+    Not,
+
+    /// An instruction to pop two values, compare them, and push the result.  
+    /// `[...][l][r]` -> `[...][l > r ? 1 : 0]`
+    Greater,
+
+    /// An instruction to pop a value and push it twice.  
+    /// `[...][value]` -> `[...][value][value]`
+    Duplicate,
+
+    /// An instruction to pop two values and push them in reverse order.  
+    /// `[...][a][b]` -> `[...][b][a]`
+    Swap,
+
+    /// An instruction to pop a value.  
+    /// `[...][value]` -> `[...]`
+    Pop,
+
+    /// An instruction to pop a value and output it as an integer.  
+    /// `[...][value]` -> `[...]`
+    OutputInteger,
+
+    /// An instruction to pop a value and output it as a character.  
+    /// `[...][value]` -> `[...]`
+    OutputCharacter,
+
+    /// An instruction to get an integer from the user and push it.  
+    /// `[...]` -> `[...][value]`
+    InputInteger,
+
+    /// An instruction to get a character from the user and push it.  
+    /// `[...]` -> `[...][value]`
+    InputCharacter,
+
+    /// An instruction to push a value.  
+    /// `[...]` -> `[...][value]`
     Push(i32),
 }
 
@@ -99,6 +156,20 @@ impl Instruction {
     /// Create a new optional instruction from a command.
     fn new(command: char) -> Option<Self> {
         match command {
+            '+' => Some(Self::Add),
+            '-' => Some(Self::Subtract),
+            '*' => Some(Self::Multiply),
+            '/' => Some(Self::Divide),
+            '%' => Some(Self::Modulo),
+            '!' => Some(Self::Not),
+            '`' => Some(Self::Greater),
+            ':' => Some(Self::Duplicate),
+            '\\' => Some(Self::Swap),
+            '$' => Some(Self::Pop),
+            '.' => Some(Self::OutputInteger),
+            ',' => Some(Self::OutputCharacter),
+            '&' => Some(Self::InputInteger),
+            '~' => Some(Self::InputCharacter),
             '0' => Some(Self::Push(0)),
             '1' => Some(Self::Push(1)),
             '2' => Some(Self::Push(2)),
@@ -117,6 +188,20 @@ impl Instruction {
 impl fmt::Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            Self::Add => write!(f, "add"),
+            Self::Subtract => write!(f, "subtract"),
+            Self::Multiply => write!(f, "multiply"),
+            Self::Divide => write!(f, "divide"),
+            Self::Modulo => write!(f, "modulo"),
+            Self::Not => write!(f, "not"),
+            Self::Greater => write!(f, "greater"),
+            Self::Duplicate => write!(f, "duplicate"),
+            Self::Swap => write!(f, "swap"),
+            Self::Pop => write!(f, "pop"),
+            Self::OutputInteger => write!(f, "output integer"),
+            Self::OutputCharacter => write!(f, "output character"),
+            Self::InputInteger => write!(f, "input integer"),
+            Self::InputCharacter => write!(f, "input character"),
             Self::Push(value) => write!(f, "push {value}"),
         }
     }
