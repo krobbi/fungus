@@ -2,30 +2,30 @@ use std::{collections::HashMap, fmt};
 
 use crate::{
     playfield::Playfield,
-    pointer::{Direction, Mode, Pointer},
+    pointer::{Direction, Label, Mode, Pointer},
 };
 
 /// An intermediate program representation.
 pub struct Program {
     /// The basic blocks.
-    blocks: HashMap<Pointer, Block>,
+    blocks: HashMap<Label, Block>,
 }
 
 impl Program {
     /// Create a new program from source code.
     pub fn new(source: &str) -> Self {
         let playfield = Playfield::new(source);
-        let mut pointers = vec![Pointer::default()];
+        let mut labels = vec![Label::default()];
         let mut blocks = HashMap::new();
 
-        while let Some(pointer) = pointers.pop() {
-            if blocks.contains_key(&pointer) {
+        while let Some(label) = labels.pop() {
+            if blocks.contains_key(&label) {
                 continue;
             }
 
-            let block = Block::new(&playfield, &pointer);
-            pointers.append(&mut block.exit.pointers());
-            blocks.insert(pointer, block);
+            let block = Block::new(&playfield, Pointer::from(label));
+            labels.append(&mut block.exit.exit_labels());
+            blocks.insert(label, block);
         }
 
         Self { blocks }
@@ -33,14 +33,14 @@ impl Program {
 
     /// Print the program as pseudo-assembly.
     pub fn dump(&self) {
-        let mut pointers: Vec<&Pointer> = self.blocks.keys().collect();
-        pointers.sort();
-        let mut pointers = pointers.iter().peekable();
+        let mut labels: Vec<&Label> = self.blocks.keys().collect();
+        labels.sort();
+        let mut labels = labels.iter().peekable();
 
         loop {
-            let pointer = pointers.next().unwrap();
-            println!("{pointer}:");
-            let block = self.blocks.get(pointer).unwrap();
+            let label = labels.next().unwrap();
+            println!("{label}:");
+            let block = self.blocks.get(label).unwrap();
 
             for instruction in &block.instructions {
                 println!("\t{instruction};");
@@ -48,7 +48,7 @@ impl Program {
 
             println!("\t{};", block.exit);
 
-            match pointers.peek() {
+            match labels.peek() {
                 None => break,
                 Some(_) => println!(),
             }
@@ -67,8 +67,8 @@ struct Block {
 
 impl Block {
     /// Create a new basic block from a playfield and a pointer.
-    fn new(playfield: &Playfield, pointer: &Pointer) -> Self {
-        let (instructions, exit) = match (pointer.mode(), playfield[pointer]) {
+    fn new(playfield: &Playfield, pointer: Pointer) -> Self {
+        let (instructions, exit) = match (pointer.mode(), playfield[&pointer]) {
             (_, '"') => (None, Exit::new_string(playfield, pointer)),
             (Mode::Command, command) => (
                 Instruction::new(command),
@@ -210,13 +210,13 @@ impl fmt::Display for Instruction {
 /// A basic block's exit point.
 enum Exit {
     /// An unconditional jump.
-    Jump(Pointer),
+    Jump(Label),
 
     /// A random jump.
-    Random(Pointer, Pointer, Pointer, Pointer),
+    Random(Label, Label, Label, Label),
 
     /// A conditional jump based on whether a popped stack value is zero.
-    If { non_zero: Pointer, zero: Pointer },
+    If { non_zero: Label, zero: Label },
 
     /// A program ending.
     End,
@@ -224,41 +224,38 @@ enum Exit {
 
 impl Exit {
     /// Create a new exit from a playfield and a pointer.
-    fn new(playfield: &Playfield, pointer: &Pointer) -> Self {
-        let mut pointer = pointer.clone();
+    fn new(playfield: &Playfield, mut pointer: Pointer) -> Self {
         pointer.advance(playfield);
-        Self::Jump(pointer)
+        Self::Jump(Label::from(pointer))
     }
 
     /// Create a new string exit from a playfield and a pointer.
-    fn new_string(playfield: &Playfield, pointer: &Pointer) -> Self {
-        let mut pointer = pointer.clone();
+    fn new_string(playfield: &Playfield, mut pointer: Pointer) -> Self {
         pointer.toggle_mode();
         pointer.advance(playfield);
-        Self::Jump(pointer)
+        Self::Jump(Label::from(pointer))
     }
 
     /// Create a new exit from a command, a playfield, and a pointer.
-    fn from_command(command: char, playfield: &Playfield, pointer: &Pointer) -> Self {
+    fn from_command(command: char, playfield: &Playfield, mut pointer: Pointer) -> Self {
         match command {
             '>' => Self::from_direction(Direction::Right, playfield, pointer),
             '<' => Self::from_direction(Direction::Left, playfield, pointer),
             '^' => Self::from_direction(Direction::Up, playfield, pointer),
             'v' => Self::from_direction(Direction::Down, playfield, pointer),
             '?' => {
-                let p0 = pointer.to_facing(Direction::Right, playfield);
-                let p1 = pointer.to_facing(Direction::Down, playfield);
-                let p2 = pointer.to_facing(Direction::Left, playfield);
-                let p3 = pointer.to_facing(Direction::Up, playfield);
-                Self::Random(p0, p1, p2, p3)
+                let right = pointer.branch_label(Direction::Right, playfield);
+                let down = pointer.branch_label(Direction::Down, playfield);
+                let left = pointer.branch_label(Direction::Left, playfield);
+                let up = pointer.branch_label(Direction::Up, playfield);
+                Self::Random(right, down, left, up)
             }
-            '_' => Self::from_if(Direction::Left, Direction::Right, playfield, pointer),
-            '|' => Self::from_if(Direction::Up, Direction::Down, playfield, pointer),
+            '_' => Self::from_if(Direction::Left, Direction::Right, playfield, &pointer),
+            '|' => Self::from_if(Direction::Up, Direction::Down, playfield, &pointer),
             '#' => {
-                let mut pointer = pointer.clone();
                 pointer.advance(playfield);
                 pointer.advance(playfield);
-                Self::Jump(pointer)
+                Self::Jump(Label::from(pointer))
             }
             '@' => Self::End,
             _ => Self::new(playfield, pointer),
@@ -266,28 +263,30 @@ impl Exit {
     }
 
     /// Create a new exit from a direction, a playfield, and a pointer.
-    fn from_direction(direction: Direction, playfield: &Playfield, pointer: &Pointer) -> Self {
-        Self::Jump(pointer.to_facing(direction, playfield))
+    fn from_direction(direction: Direction, playfield: &Playfield, mut pointer: Pointer) -> Self {
+        pointer.face(direction);
+        pointer.advance(playfield);
+        Self::Jump(Label::from(pointer))
     }
 
-    /// Create a new exit from if directions, a playfield, and a pointer.
+    /// Create a new exit from branch directions, a playfield, and a pointer.
     fn from_if(
         non_zero: Direction,
         zero: Direction,
         playfield: &Playfield,
         pointer: &Pointer,
     ) -> Self {
-        let non_zero = pointer.to_facing(non_zero, playfield);
-        let zero = pointer.to_facing(zero, playfield);
+        let non_zero = pointer.branch_label(non_zero, playfield);
+        let zero = pointer.branch_label(zero, playfield);
         Self::If { non_zero, zero }
     }
 
-    /// Get the next pointers as a vector.
-    fn pointers(&self) -> Vec<Pointer> {
-        match self {
-            Self::Jump(pointer) => vec![pointer.clone()],
-            Self::Random(p0, p1, p2, p3) => vec![p0.clone(), p1.clone(), p2.clone(), p3.clone()],
-            Self::If { non_zero, zero } => vec![non_zero.clone(), zero.clone()],
+    /// Get the exit labels as a vector.
+    fn exit_labels(&self) -> Vec<Label> {
+        match *self {
+            Self::Jump(label) => vec![label],
+            Self::Random(right, down, left, up) => vec![right, down, left, up],
+            Self::If { non_zero, zero } => vec![non_zero, zero],
             Self::End => vec![],
         }
     }
@@ -297,7 +296,9 @@ impl fmt::Display for Exit {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Jump(pointer) => write!(f, "jump {pointer}"),
-            Self::Random(p0, p1, p2, p3) => write!(f, "random {p0}, {p1}, {p2}, {p3}"),
+            Self::Random(right, down, left, up) => {
+                write!(f, "random {right}, {down}, {left}, {up}")
+            }
             Self::If { non_zero, zero } => write!(f, "if {non_zero} else {zero}"),
             Self::End => write!(f, "end"),
         }

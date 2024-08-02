@@ -1,9 +1,11 @@
-use std::{cmp::Ordering, fmt};
+mod label;
+
+pub use label::Label;
 
 use crate::playfield::Playfield;
 
 /// An instruction pointer with a playfield position.
-#[derive(Clone, Default, PartialEq, Eq, Hash)]
+#[derive(Clone)]
 pub struct Pointer {
     /// The X position.
     x: usize,
@@ -19,14 +21,6 @@ pub struct Pointer {
 }
 
 impl Pointer {
-    /// Create a clone of the pointer advanced in a direction on a playfield.
-    pub fn to_facing(&self, direction: Direction, playfield: &Playfield) -> Self {
-        let mut pointer = self.clone();
-        pointer.face(direction);
-        pointer.advance(playfield);
-        pointer
-    }
-
     /// Get the position.
     pub fn position(&self) -> (usize, usize) {
         (self.x, self.y)
@@ -83,53 +77,20 @@ impl Pointer {
             Mode::String => Mode::Command,
         };
     }
-}
 
-impl PartialOrd for Pointer {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Pointer {
-    fn cmp(&self, other: &Self) -> Ordering {
-        match self.y.cmp(&other.y) {
-            Ordering::Less => return Ordering::Less,
-            Ordering::Equal => (),
-            Ordering::Greater => return Ordering::Greater,
-        };
-
-        match self.x.cmp(&other.x) {
-            Ordering::Less => return Ordering::Less,
-            Ordering::Equal => (),
-            Ordering::Greater => return Ordering::Greater,
-        };
-
-        match self.mode.cmp(&other.mode) {
-            Ordering::Less => return Ordering::Less,
-            Ordering::Equal => (),
-            Ordering::Greater => return Ordering::Greater,
-        };
-
-        self.direction.cmp(&other.direction)
-    }
-}
-
-impl fmt::Display for Pointer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "x{}_y{}_{}_{}",
-            self.x, self.y, self.mode, self.direction
-        )
+    /// Get a new label branched from the pointer in a direction on a playfield.
+    pub fn branch_label(&self, direction: Direction, playfield: &Playfield) -> Label {
+        let mut pointer = self.clone();
+        pointer.face(direction);
+        pointer.advance(playfield);
+        Label::from(pointer)
     }
 }
 
 /// A direction traveled by a pointer.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Direction {
     /// A direction where the X position is incremented.
-    #[default]
     Right,
 
     /// A direction where the Y position is incremented.
@@ -142,35 +103,14 @@ pub enum Direction {
     Up,
 }
 
-impl fmt::Display for Direction {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Right => write!(f, "right"),
-            Self::Down => write!(f, "down"),
-            Self::Left => write!(f, "left"),
-            Self::Up => write!(f, "up"),
-        }
-    }
-}
-
 /// A mode used by a pointer.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mode {
     /// A mode where the pointer executes characters as commands.
-    #[default]
     Command,
 
     /// A mode where the pointer pushes characters to the stack as values.
     String,
-}
-
-impl fmt::Display for Mode {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Command => write!(f, "command"),
-            Self::String => write!(f, "string"),
-        }
-    }
 }
 
 #[cfg(test)]
@@ -180,7 +120,7 @@ mod tests {
     /// Test that the default pointer has the expected fields.
     #[test]
     fn test_default() {
-        let pointer = Pointer::default();
+        let pointer = Pointer::from(Label::default());
         assert_eq!(pointer.x, 0, "default pointer x position is not 0");
         assert_eq!(pointer.y, 0, "default pointer y position is not 0");
 
@@ -251,7 +191,7 @@ mod tests {
                 "pointer mode getter does not match property"
             );
 
-            assert_eq!(pointer.mode, mode, "pointer mode is not {mode}");
+            assert_eq!(pointer.mode, mode, "pointer mode is not {mode:?}");
 
             assert_eq!(
                 pointer.x, x,
@@ -269,7 +209,7 @@ mod tests {
             );
         }
 
-        let mut pointer = Pointer::default();
+        let mut pointer = Pointer::from(Label::default());
         check(&mut pointer, Mode::String);
         check(&mut pointer, Mode::Command);
         check(&mut pointer, Mode::String);
@@ -289,7 +229,7 @@ mod tests {
         fn new(source: &str) -> Self {
             Self {
                 playfield: Playfield::new(source),
-                pointer: Pointer::default(),
+                pointer: Pointer::from(Label::default()),
             }
         }
 
@@ -301,7 +241,7 @@ mod tests {
 
             assert_eq!(
                 self.pointer.direction, direction,
-                "pointer direction is not {direction}"
+                "pointer direction is not {direction:?}"
             );
 
             assert_eq!(

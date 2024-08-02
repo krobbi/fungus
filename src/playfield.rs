@@ -1,6 +1,6 @@
 use std::ops;
 
-use crate::pointer::Pointer;
+use crate::pointer::{Label, Pointer};
 
 /// A 2D grid of characters.
 pub struct Playfield {
@@ -25,6 +25,12 @@ impl Playfield {
         }
 
         let height = source.len().max(1);
+
+        assert!(
+            width <= Label::MAX_PLAYFIELD_LENGTH && height <= Label::MAX_PLAYFIELD_LENGTH,
+            "playfield too large"
+        );
+
         let mut cells = vec!['\0'; width * height];
 
         for (y, line) in source.iter().enumerate() {
@@ -143,7 +149,7 @@ mod tests {
         }
 
         let playfield = new_playfield("012\n345\n678", 3, 3);
-        let mut pointer = Pointer::default();
+        let mut pointer = Pointer::from(Label::default());
 
         pointer.face(Direction::Left);
         check(&playfield, &mut pointer, '2');
@@ -167,7 +173,7 @@ mod tests {
     #[should_panic]
     fn test_index_out_of_bounds() {
         let playfield = new_playfield("01", 2, 1);
-        let mut pointer = Pointer::default();
+        let mut pointer = Pointer::from(Label::default());
         pointer.advance(&playfield);
 
         // The playfield needs to be swapped out to work around the wrapping.
