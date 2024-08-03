@@ -1,3 +1,5 @@
+mod optimizer;
+
 use std::{collections::HashMap, fmt};
 
 use crate::{
@@ -29,6 +31,11 @@ impl Program {
         }
 
         Self { blocks }
+    }
+
+    /// Optimize the program.
+    pub fn optimize(&mut self) {
+        optimizer::optimize_program(self);
     }
 
     /// Print the program as pseudo-assembly.

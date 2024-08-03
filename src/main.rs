@@ -8,11 +8,12 @@ use ir::Program;
 
 /// Run Fungus.
 fn main() {
-    let program = load_program().unwrap_or_else(|e| {
+    let mut program = load_program().unwrap_or_else(|e| {
         eprintln!("{e}");
         process::exit(1);
     });
 
+    program.optimize();
     program.dump();
 }
 
