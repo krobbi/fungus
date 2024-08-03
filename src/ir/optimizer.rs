@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::pointer::Label;
 
@@ -52,5 +52,37 @@ fn thread_jumps(program: &mut Program) -> bool {
         }
     }
 
-    redirected
+    if redirected {
+        remove_unreachable_blocks(program);
+        true
+    } else {
+        false
+    }
+}
+
+/// Remove unreachable basic blocks.
+fn remove_unreachable_blocks(program: &mut Program) {
+    let mut pending_labels = vec![Label::default()];
+    let mut reachable_labels = HashSet::new();
+
+    while let Some(label) = pending_labels.pop() {
+        if reachable_labels.contains(&label) {
+            continue;
+        }
+
+        pending_labels.append(&mut program.blocks.get(&label).unwrap().exit.exit_labels());
+        reachable_labels.insert(label);
+    }
+
+    let mut unreachable_labels = HashSet::new();
+
+    for &label in program.blocks.keys() {
+        if !reachable_labels.contains(&label) {
+            unreachable_labels.insert(label);
+        }
+    }
+
+    for label in unreachable_labels {
+        program.blocks.remove(&label);
+    }
 }
