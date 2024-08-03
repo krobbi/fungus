@@ -200,14 +200,14 @@ mod tests {
             Ordering::Less => return Ordering::Less,
             Ordering::Equal => (),
             Ordering::Greater => return Ordering::Greater,
-        };
+        }
 
         // ...followed by the X position...
         match a.x.cmp(&b.x) {
             Ordering::Less => return Ordering::Less,
             Ordering::Equal => (),
             Ordering::Greater => return Ordering::Greater,
-        };
+        }
 
         // ...followed by the mode...
         match (a.mode, b.mode) {
@@ -215,7 +215,7 @@ mod tests {
             (Mode::Command, Mode::String) => return Ordering::Less,
             (Mode::String, Mode::Command) => return Ordering::Greater,
             (Mode::String, Mode::String) => (),
-        };
+        }
 
         // ...and finally, the direction.
         direction_order(a.direction).cmp(&direction_order(b.direction))
