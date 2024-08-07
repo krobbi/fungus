@@ -2,13 +2,14 @@ use std::collections::{HashMap, HashSet};
 
 use crate::pointer::Label;
 
-use super::{Exit, Program};
+use super::{Exit, Instruction, Program};
 
 /// Optimize a program.
 pub fn optimize_program(program: &mut Program) {
     loop {
         let mut optimized = false;
         merge_blocks(program, &mut optimized);
+        replace_instructions(program, &mut optimized);
 
         if !optimized {
             break;
@@ -46,5 +47,61 @@ fn merge_blocks(program: &mut Program, optimized: &mut bool) {
         predecessor.instructions.append(&mut successor.instructions);
         predecessor.exit = successor.exit;
         *optimized = true;
+    }
+}
+
+/// Replace peepholes of instructions with more optimal instructions.
+fn replace_instructions(program: &mut Program, optimized: &mut bool) {
+    for instructions in program
+        .blocks
+        .values_mut()
+        .map(|block| &mut block.instructions)
+    {
+        for length in 2..=2 {
+            let mut index = 0;
+
+            loop {
+                let range = index..index + length;
+
+                let Some(peephole) = instructions.get(range.clone()) else {
+                    break;
+                };
+
+                if let Some(peephole) = optimize_peephole(peephole) {
+                    instructions.splice(range, peephole);
+                    index = index.saturating_sub(length - 1);
+                    *optimized = true;
+                } else {
+                    index += 1;
+                }
+            }
+        }
+    }
+}
+
+/// Get optional, more optimal instructions from a peephole of instructions.
+fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
+    #[allow(clippy::enum_glob_use)]
+    use Instruction::*;
+
+    #[allow(clippy::match_same_arms)]
+    match peephole {
+        [Not, Pop] => Some(vec![Pop]),
+        [Duplicate, Greater] => Some(vec![Pop, Push(0)]),
+        [Duplicate, Swap] => Some(vec![Duplicate]),
+        [Duplicate, Pop] => Some(vec![]),
+        [Swap, Swap] => Some(vec![]),
+        [Push(0), Add] => Some(vec![]),
+        [Push(0), Subtract] => Some(vec![]),
+        [Push(0), Multiply] => Some(vec![Pop, Push(0)]),
+        [Push(0), Divide] => Some(vec![Pop, InputInteger]),
+        [Push(0), Modulo] => Some(vec![Pop, InputInteger]),
+        [Push(1), Multiply] => Some(vec![]),
+        [Push(1), Divide] => Some(vec![]),
+        [Push(1), Modulo] => Some(vec![Pop, Push(0)]),
+        &[Push(value), Not] => Some(vec![Push(i32::from(value == 0))]),
+        &[Push(value), Duplicate] => Some(vec![Push(value), Push(value)]),
+        [Push(_), Pop] => Some(vec![]),
+        _ => None,
     }
 }
