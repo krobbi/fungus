@@ -57,7 +57,7 @@ fn replace_instructions(program: &mut Program, optimized: &mut bool) {
         .values_mut()
         .map(|block| &mut block.instructions)
     {
-        for length in 2..=2 {
+        for length in 2..=3 {
             let mut index = 0;
 
             loop {
@@ -102,6 +102,21 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         &[Push(value), Not] => Some(vec![Push(i32::from(value == 0))]),
         &[Push(value), Duplicate] => Some(vec![Push(value), Push(value)]),
         [Push(_), Pop] => Some(vec![]),
+        [Not, Not, Not] => Some(vec![Not]),
+        [Greater, Not, Not] => Some(vec![Greater]),
+        [Push(0), InputInteger, Add] => Some(vec![InputInteger]),
+        [Push(0), InputInteger, Multiply] => Some(vec![InputInteger, Pop, Push(0)]),
+        [Push(0), InputCharacter, Add] => Some(vec![InputCharacter]),
+        [Push(0), InputCharacter, Multiply] => Some(vec![InputCharacter, Pop, Push(0)]),
+        [Push(1), InputInteger, Multiply] => Some(vec![InputInteger]),
+        [Push(1), InputCharacter, Multiply] => Some(vec![InputCharacter]),
+        [Push(l), Push(r), Add] => Some(vec![Push(l + r)]),
+        [Push(l), Push(r), Subtract] => Some(vec![Push(l - r)]),
+        [Push(l), Push(r), Multiply] => Some(vec![Push(l * r)]),
+        [Push(l), Push(r @ (..=-1 | 1..)), Divide] => Some(vec![Push(l / r)]),
+        [Push(l), Push(r @ (..=-1 | 1..)), Modulo] => Some(vec![Push(l % r)]),
+        [Push(l), Push(r), Greater] => Some(vec![Push(i32::from(l > r))]),
+        &[Push(a), Push(b), Swap] => Some(vec![Push(b), Push(a)]),
         _ => None,
     }
 }
