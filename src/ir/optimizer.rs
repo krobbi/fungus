@@ -10,6 +10,7 @@ pub fn optimize_program(program: &mut Program) {
         let mut optimized = false;
         merge_blocks(program, &mut optimized);
         replace_instructions(program, &mut optimized);
+        replace_ifs(program, &mut optimized);
 
         if !optimized {
             break;
@@ -75,6 +76,39 @@ fn replace_instructions(program: &mut Program, optimized: &mut bool) {
                     index += 1;
                 }
             }
+        }
+    }
+}
+
+/// Optimize ifs by replacing them with jumps or swapping their branches.
+fn replace_ifs(program: &mut Program, optimized: &mut bool) {
+    for block in program.blocks.values_mut() {
+        let Exit::If { non_zero, zero } = block.exit else {
+            continue;
+        };
+
+        if non_zero == zero {
+            block.instructions.push(Instruction::Pop);
+            block.exit = Exit::Jump(non_zero);
+            *optimized = true;
+            continue;
+        }
+
+        match block.instructions.last() {
+            Some(Instruction::Not) => {
+                block.instructions.pop();
+                block.exit = Exit::If {
+                    non_zero: zero,
+                    zero: non_zero,
+                };
+                *optimized = true;
+            }
+            Some(&Instruction::Push(value)) => {
+                block.instructions.pop();
+                block.exit = Exit::Jump(if value != 0 { non_zero } else { zero });
+                *optimized = true;
+            }
+            _ => (),
         }
     }
 }
