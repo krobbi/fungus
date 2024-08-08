@@ -11,6 +11,7 @@ pub fn optimize_program(program: &mut Program) {
         merge_blocks(program, &mut optimized);
         replace_instructions(program, &mut optimized);
         replace_ifs(program, &mut optimized);
+        remove_unreachable_blocks(program, &mut optimized);
 
         if !optimized {
             break;
@@ -110,6 +111,34 @@ fn replace_ifs(program: &mut Program, optimized: &mut bool) {
             }
             _ => (),
         }
+    }
+}
+
+/// Remove basic blocks that can never be reached.
+fn remove_unreachable_blocks(program: &mut Program, optimized: &mut bool) {
+    let mut pending_labels = vec![Label::default()];
+    let mut reachable_labels = HashSet::new();
+
+    while let Some(label) = pending_labels.pop() {
+        if reachable_labels.contains(&label) {
+            continue;
+        }
+
+        pending_labels.append(&mut program.blocks.get(&label).unwrap().exit.exit_labels());
+        reachable_labels.insert(label);
+    }
+
+    let mut unreachable_labels = HashSet::new();
+
+    for &label in program.blocks.keys() {
+        if !reachable_labels.contains(&label) {
+            unreachable_labels.insert(label);
+        }
+    }
+
+    for label in unreachable_labels {
+        program.blocks.remove(&label);
+        *optimized = true;
     }
 }
 
