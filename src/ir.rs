@@ -302,7 +302,7 @@ impl Exit {
 impl fmt::Display for Exit {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Jump(pointer) => write!(f, "jump {pointer}"),
+            Self::Jump(label) => write!(f, "jump {label}"),
             Self::Random(right, down, left, up) => {
                 write!(f, "random {right}, {down}, {left}, {up}")
             }
