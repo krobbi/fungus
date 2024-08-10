@@ -11,6 +11,7 @@ pub fn optimize_program(program: &mut Program) {
         merge_blocks(program, &mut optimized);
         replace_instructions(program, &mut optimized);
         replace_ifs(program, &mut optimized);
+        thread_jumps(program, &mut optimized);
         remove_unreachable_blocks(program, &mut optimized);
 
         if !optimized {
@@ -110,6 +111,76 @@ fn replace_ifs(program: &mut Program, optimized: &mut bool) {
                 *optimized = true;
             }
             _ => (),
+        }
+    }
+}
+
+/// Redirect exits that target jumps to the jump's target.
+fn thread_jumps(program: &mut Program, optimized: &mut bool) {
+    /// Follow a target label to an optional further target label.
+    fn follow_target(target: Label, program: &Program) -> Option<Label> {
+        let block = program.blocks.get(&target).unwrap();
+
+        if block.instructions.is_empty() {
+            if let Exit::Jump(target) = block.exit {
+                return Some(target);
+            }
+        }
+
+        None
+    }
+
+    /// Redirect a source label to a target label from a map of redirects.
+    fn redirect_label(source: &mut Label, redirects: &HashMap<Label, Label>, optimized: &mut bool) {
+        if let Some(&target) = redirects.get(source) {
+            *source = target;
+            *optimized = true;
+        }
+    }
+
+    let mut redirects = HashMap::new();
+
+    'follow_source: for &source in program.blocks.keys() {
+        if redirects.contains_key(&source) {
+            continue;
+        }
+
+        let mut target = source;
+        let mut sources = HashSet::new();
+
+        while let Some(next_target) = follow_target(target, program) {
+            sources.insert(target);
+
+            if sources.contains(&next_target) {
+                continue 'follow_source;
+            }
+
+            target = next_target;
+        }
+
+        for source in sources {
+            redirects.insert(source, target);
+        }
+    }
+
+    if redirects.is_empty() {
+        return;
+    }
+
+    for exit in program.blocks.values_mut().map(|block| &mut block.exit) {
+        match exit {
+            Exit::Jump(label) => redirect_label(label, &redirects, optimized),
+            Exit::Random(right, down, left, up) => {
+                redirect_label(right, &redirects, optimized);
+                redirect_label(down, &redirects, optimized);
+                redirect_label(left, &redirects, optimized);
+                redirect_label(up, &redirects, optimized);
+            }
+            Exit::If { non_zero, zero } => {
+                redirect_label(non_zero, &redirects, optimized);
+                redirect_label(zero, &redirects, optimized);
+            }
+            Exit::End => (),
         }
     }
 }
