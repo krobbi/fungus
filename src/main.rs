@@ -1,9 +1,11 @@
+mod error;
 mod ir;
 mod playfield;
 mod pointer;
 
 use std::{env, fs, process};
 
+use error::{Error, Result};
 use ir::Program;
 
 /// Run Fungus.
@@ -18,15 +20,12 @@ fn main() {
 }
 
 /// Load a program from command line arguments.
-fn load_program() -> Result<Program, String> {
+fn load_program() -> Result<Program> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() == 2 {
-        match fs::read_to_string(&args[1]) {
-            Ok(source) => Ok(Program::new(&source)),
-            Err(e) => Err(format!("{e}")),
-        }
+        Ok(Program::new(&fs::read_to_string(&args[1])?))
     } else {
-        Err(String::from("Usage: fungus [path]"))
+        Err(Error::InvalidArgs)
     }
 }
