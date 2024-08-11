@@ -228,7 +228,7 @@ mod tests {
         /// Create a new tester from source code.
         fn new(source: &str) -> Self {
             Self {
-                playfield: Playfield::new(source),
+                playfield: Playfield::new(source).unwrap(),
                 pointer: Pointer::from(Label::default()),
             }
         }

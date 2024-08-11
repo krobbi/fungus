@@ -1,6 +1,9 @@
 use std::ops;
 
-use crate::pointer::{Label, Pointer};
+use crate::{
+    error::{Error, Result},
+    pointer::{Label, Pointer},
+};
 
 /// A 2D grid of characters.
 pub struct Playfield {
@@ -15,8 +18,11 @@ pub struct Playfield {
 }
 
 impl Playfield {
+    /// A playfield's maximum width or height.
+    pub const MAX_LENGTH: usize = Label::MAX_POSITION + 1;
+
     /// Create a new playfield from source code.
-    pub fn new(source: &str) -> Self {
+    pub fn new(source: &str) -> Result<Self> {
         let source: Vec<Vec<char>> = source.lines().map(|line| line.chars().collect()).collect();
         let mut width = 1;
 
@@ -26,10 +32,9 @@ impl Playfield {
 
         let height = source.len().max(1);
 
-        assert!(
-            width <= Label::MAX_PLAYFIELD_LENGTH && height <= Label::MAX_PLAYFIELD_LENGTH,
-            "playfield too large"
-        );
+        if width > Self::MAX_LENGTH || height > Self::MAX_LENGTH {
+            return Err(Error::PlayfieldTooLarge);
+        }
 
         let mut cells = vec!['\0'; width * height];
 
@@ -39,11 +44,11 @@ impl Playfield {
             }
         }
 
-        Self {
+        Ok(Self {
             width,
             height,
             cells,
-        }
+        })
     }
 
     /// Get the width in cells.
@@ -183,7 +188,7 @@ mod tests {
 
     /// Create a new playfield from source code with an expected size.
     fn new_playfield(source: &str, width: usize, height: usize) -> Playfield {
-        let playfield = Playfield::new(source);
+        let playfield = Playfield::new(source).unwrap();
 
         assert_eq!(
             playfield.width(),

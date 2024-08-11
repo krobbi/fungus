@@ -19,8 +19,8 @@ pub struct Label {
 }
 
 impl Label {
-    /// The maximum width or height of a playfield pointed to by a label.
-    pub const MAX_PLAYFIELD_LENGTH: usize = 2usize.pow(POSITION_BIT_COUNT);
+    /// A label's maximum X or Y position.
+    pub const MAX_POSITION: usize = 2usize.pow(POSITION_BIT_COUNT) - 1;
 }
 
 impl From<Pointer> for Label {
@@ -48,8 +48,6 @@ impl From<Pointer> for Label {
 
 impl From<Label> for Pointer {
     fn from(value: Label) -> Self {
-        const POSITION_MASK: usize = Label::MAX_PLAYFIELD_LENGTH - 1;
-
         let direction = match value.data & 0b11 {
             0b00 => Direction::Right,
             0b01 => Direction::Down,
@@ -64,10 +62,10 @@ impl From<Label> for Pointer {
             _ => unreachable!(),
         };
 
-        let x = usize::try_from(value.data >> FLAG_BIT_COUNT).unwrap() & POSITION_MASK;
+        let x = usize::try_from(value.data >> FLAG_BIT_COUNT).unwrap() & Label::MAX_POSITION;
 
         let y = usize::try_from(value.data >> (FLAG_BIT_COUNT + POSITION_BIT_COUNT)).unwrap()
-            & POSITION_MASK;
+            & Label::MAX_POSITION;
 
         Self {
             x,

@@ -3,6 +3,7 @@ mod optimizer;
 use std::{collections::HashMap, fmt};
 
 use crate::{
+    error::Result,
     playfield::Playfield,
     pointer::{Direction, Label, Mode, Pointer},
 };
@@ -15,8 +16,8 @@ pub struct Program {
 
 impl Program {
     /// Create a new program from source code.
-    pub fn new(source: &str) -> Self {
-        let playfield = Playfield::new(source);
+    pub fn new(source: &str) -> Result<Self> {
+        let playfield = Playfield::new(source)?;
         let mut labels = vec![Label::default()];
         let mut blocks = HashMap::new();
 
@@ -30,7 +31,7 @@ impl Program {
             blocks.insert(label, block);
         }
 
-        Self { blocks }
+        Ok(Self { blocks })
     }
 
     /// Optimize the program.
