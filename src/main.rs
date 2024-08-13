@@ -1,31 +1,25 @@
+mod config;
 mod error;
 mod ir;
 mod playfield;
 mod pointer;
 
-use std::{env, fs, process};
+use std::fs;
 
-use error::{Error, Result};
+use config::Config;
+use error::Result;
 use ir::Program;
 
-/// Run Fungus.
+/// Run Fungus or exit with an error.
 fn main() {
-    let mut program = load_program().unwrap_or_else(|e| {
-        eprintln!("{e}");
-        process::exit(1);
-    });
-
-    program.optimize();
-    program.dump();
+    run_fungus().unwrap_or_else(|error| error.exit());
 }
 
-/// Load a program from command line arguments.
-fn load_program() -> Result<Program> {
-    let args: Vec<String> = env::args().collect();
-
-    if args.len() == 2 {
-        Program::new(&fs::read_to_string(&args[1])?)
-    } else {
-        Err(Error::InvalidArgs)
-    }
+/// Run Fungus and get a result.
+fn run_fungus() -> Result<()> {
+    let config = Config::new()?;
+    let mut program = Program::new(&fs::read_to_string(config.path())?)?;
+    program.optimize();
+    program.dump();
+    Ok(())
 }
