@@ -20,7 +20,7 @@ accelerates runtime with an initial compilation and optimization stage.
 Fungus mostly targets the original Befunge-93 standard, with some differences:
 * The playfield may be an arbitrary size, up to 16384x16384 cells.
 * Characters are represented as Unicode code points, not ASCII bytes.
-* The `?`, `g`, `p`, `&`, and `~` commands are not yet fully implemented.
+* The `g`, `p`, `&`, and `~` commands are not yet fully implemented.
 * To simplify the optimizer, using a command without enough parameters on the
 stack is considered undefined behavior. No error will be reported for this.
 
@@ -157,6 +157,7 @@ stage after optimization.
 # Dependencies
 Fungus uses the following libraries:
 * [clap](https://crates.io/crates/clap) - Command line argument parsing.
+* [rand](https://crates.io/crates/rand) - Random branching in interpreter.
 
 # License
 Fungus is released under the MIT License:  

@@ -45,10 +45,15 @@ impl Interpreter<'_> {
             self.interpret_instruction(instruction);
         }
 
-        // TODO: Implement random exits.
         match block.exit {
             Exit::Jump(label) => Some(label),
-            Exit::Random(right, _, _, _) => Some(right),
+            Exit::Random(right, down, left, up) => Some(match rand::random::<u8>() & 0b11 {
+                0b00 => right,
+                0b01 => down,
+                0b10 => left,
+                0b11 => up,
+                _ => unreachable!(),
+            }),
             Exit::If { non_zero, zero } => Some(if self.pop() != 0 { non_zero } else { zero }),
             Exit::End => None,
         }

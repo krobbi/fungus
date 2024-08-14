@@ -12,6 +12,7 @@ publish = false
 
 [dependencies]
 clap = { version = "4.5.15", features = ["derive"] }
+rand = "0.8.5"
 
 [profile.release]
 codegen-units = 1
