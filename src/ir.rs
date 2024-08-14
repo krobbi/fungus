@@ -1,3 +1,4 @@
+mod interpreter;
 mod optimizer;
 
 use std::{collections::HashMap, fmt};
@@ -37,6 +38,11 @@ impl Program {
     /// Optimize the program.
     pub fn optimize(&mut self) {
         optimizer::optimize_program(self);
+    }
+
+    /// Interpret the program.
+    pub fn interpret(&self) {
+        interpreter::interpret_program(self);
     }
 
     /// Print the program as pseudo-assembly.

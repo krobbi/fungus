@@ -3,10 +3,10 @@ name = "fungus"
 version = "0.1.0"
 authors = ["Chris Roberts"]
 edition = "2021"
-description = "Compiling the uncompilable."
+description = "Optimizing Befunge interpreter."
 repository = "https://github.com/krobbi/fungus"
 license = "MIT"
-keywords = ["befunge"]
+keywords = ["befunge", "esolang", "interpreter"]
 categories = ["command-line-utilities", "compilers"]
 publish = false
 

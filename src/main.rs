@@ -20,6 +20,12 @@ fn run_fungus() -> Result<()> {
     let config = Config::new()?;
     let mut program = Program::new(&fs::read_to_string(config.path())?)?;
     program.optimize();
-    program.dump();
+
+    if config.dump() {
+        program.dump();
+    } else {
+        program.interpret();
+    }
+
     Ok(())
 }

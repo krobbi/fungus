@@ -22,13 +22,22 @@ impl Config {
     pub fn path(&self) -> &Path {
         &self.args.path
     }
+
+    /// Get whether to print the program as pseudo-assembly.
+    pub fn dump(&self) -> bool {
+        self.args.dump
+    }
 }
 
 /// Command line arguments.
 #[derive(Parser)]
-#[command(version, about = "Optimizing Befunge compiler")]
+#[command(version, about = "Optimizing Befunge interpreter")]
 struct Args {
     /// The path to the source file.
     #[arg(help = "Source file path")]
     path: PathBuf,
+
+    /// Whether to print the program as pseudo-assembly.
+    #[arg(short, long, help = "Print pseudo-assembly")]
+    dump: bool,
 }

@@ -1,5 +1,5 @@
 # Fungus
-_Compiling the uncompilable._
+_Optimizing Befunge interpreter._
 
 # Contents
 1. [About](#about)
@@ -14,9 +14,15 @@ _Compiling the uncompilable._
 5. [License](#license)
 
 # About
-Fungus is a project that aims to be an implementation of
-[Befunge](https://esolangs.org/wiki/Befunge) that accelerates the runtime with
-an initial compilation and optimization stage.
+Fungus is a [Befunge](https://esolangs.org/wiki/Befunge) interpreter that
+accelerates runtime with an initial compilation and optimization stage.
+
+Fungus mostly targets the original Befunge-93 standard, with some differences:
+* The playfield may be an arbitrary size, up to 16384x16384 cells.
+* Characters are represented as Unicode code points, not ASCII bytes.
+* The `?`, `g`, `p`, `&`, and `~` commands are not yet fully implemented.
+* To simplify the optimizer, using a command without enough parameters on the
+stack is considered undefined behavior. No error will be reported for this.
 
 # Usage
 Fungus is run from the command line:
@@ -24,26 +30,25 @@ Fungus is run from the command line:
 fungus [OPTIONS] <PATH>
 ```
 
-Fungus will load the Befunge source file at `<PATH>` and print the program as
-optimized pseudo-assembly.
+Fungus will load the Befunge source file at `<PATH>` and interpret it as a
+program.
 
 ## Arguments
 | Argument | Usage            |
 | :------- | :--------------- |
 | `<PATH>` | Source file path |
 
-The source file at `<PATH>` must be formatted as UTF-8. Unlike in the original
-Befunge-93 specification, the playfield may be an arbitrary size, and each cell
-is a Unicode code point rather than an ASCII character.
-
-The `g` and `p` Befunge commands are not yet supported. See
-[The Hard Part](#the-hard-part) for more information.
+The source file at `<PATH>` must be formatted as UTF-8.
 
 ## Options
-| Short | Long        | Usage         |
-| :---- | :---------- | :------------ |
-| `-h`  | `--help`    | Print help    |
-| `-V`  | `--version` | Print version |
+| Short | Long        | Usage                 |
+| :---- | :---------- | :-------------------- |
+| `-d`  | `--dump`    | Print pseudo-assembly |
+| `-h`  | `--help`    | Print help            |
+| `-V`  | `--version` | Print version         |
+
+If the `--dump` flag is set, the program will be printed as pseudo-assembly
+instead of being interpreted.
 
 If the `--help` or `--version` flags are set, Fungus will print information but
 not perform any action.
