@@ -47,7 +47,7 @@ impl Interpreter<'_> {
 
         match block.exit {
             Exit::Jump(label) => Some(label),
-            Exit::Random(right, down, left, up) => Some(match rand::random::<u8>() & 0b11 {
+            Exit::Random(right, down, left, up) => Some(match rand::random::<u32>() & 0b11 {
                 0b00 => right,
                 0b01 => down,
                 0b10 => left,
