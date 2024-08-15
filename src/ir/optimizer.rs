@@ -228,8 +228,6 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         [Push(0), Add] => Some(vec![]),
         [Push(0), Subtract] => Some(vec![]),
         [Push(0), Multiply] => Some(vec![Pop, Push(0)]),
-        [Push(0), Divide] => Some(vec![Pop, InputInteger]),
-        [Push(0), Modulo] => Some(vec![Pop, InputInteger]),
         [Push(1), Multiply] => Some(vec![]),
         [Push(1), Divide] => Some(vec![]),
         [Push(1), Modulo] => Some(vec![Pop, Push(0)]),
