@@ -1,4 +1,7 @@
-use std::io::{self, Write};
+use std::{
+    collections::VecDeque,
+    io::{self, Write},
+};
 
 use crate::pointer::Label;
 
@@ -17,6 +20,9 @@ struct Interpreter<'a> {
 
     /// The stack.
     stack: Vec<i32>,
+
+    /// The character input buffer.
+    input_chars: VecDeque<char>,
 }
 
 impl Interpreter<'_> {
@@ -25,6 +31,7 @@ impl Interpreter<'_> {
         Interpreter {
             program,
             stack: vec![],
+            input_chars: VecDeque::new(),
         }
     }
 
@@ -35,6 +42,8 @@ impl Interpreter<'_> {
         while let Some(next_label) = self.interpret_label(label) {
             label = next_label;
         }
+
+        flush_output();
     }
 
     /// Interpret a label and get the optional next label.
@@ -84,7 +93,7 @@ impl Interpreter<'_> {
                 if r != 0 {
                     self.push(l / r);
                 } else {
-                    self.divide_by_zero();
+                    self.divide_by_zero(l, '/');
                 }
             }
             Instruction::Modulo => {
@@ -94,7 +103,7 @@ impl Interpreter<'_> {
                 if r != 0 {
                     self.push(l % r);
                 } else {
-                    self.divide_by_zero();
+                    self.divide_by_zero(l, '%');
                 }
             }
             Instruction::Not => {
@@ -123,7 +132,6 @@ impl Interpreter<'_> {
             Instruction::OutputInteger => {
                 let value = self.pop();
                 print!("{value} ");
-                io::stdout().flush().unwrap();
             }
             Instruction::OutputCharacter => {
                 let value = self.pop();
@@ -132,14 +140,21 @@ impl Interpreter<'_> {
                 let value = char::from_u32(value as u32).unwrap_or(char::REPLACEMENT_CHARACTER);
 
                 print!("{value}");
-                io::stdout().flush().unwrap();
             }
             Instruction::InputInteger => {
                 self.input_integer();
             }
             Instruction::InputCharacter => {
-                // TODO: Implement character input.
-                self.push('\n' as i32);
+                if self.input_chars.is_empty() {
+                    self.input_chars.append(&mut read_line().chars().collect());
+                }
+
+                let value = match self.input_chars.pop_front() {
+                    None => -1,
+                    Some(value) => value as i32,
+                };
+
+                self.push(value);
             }
             &Instruction::Push(value) => {
                 self.push(value);
@@ -148,14 +163,15 @@ impl Interpreter<'_> {
     }
 
     /// Handle a division by zero.
-    fn divide_by_zero(&mut self) {
+    fn divide_by_zero(&mut self, l: i32, operator: char) {
+        print!("What do you want the result of {l} {operator} 0 to be? ");
         self.input_integer();
     }
 
     /// Input an integer and push it to the stack.
     fn input_integer(&mut self) {
-        // TODO: Implement integer input.
-        self.push(0);
+        let value = read_line().trim().parse().unwrap_or(-1);
+        self.push(value);
     }
 
     /// Push a value to the stack.
@@ -167,4 +183,17 @@ impl Interpreter<'_> {
     fn pop(&mut self) -> i32 {
         self.stack.pop().unwrap_or(0)
     }
+}
+
+/// Read a line of input.
+fn read_line() -> String {
+    flush_output();
+    let mut line = String::new();
+    io::stdin().read_line(&mut line).unwrap();
+    line
+}
+
+/// Flush the standard output stream.
+fn flush_output() {
+    io::stdout().flush().unwrap();
 }

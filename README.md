@@ -20,7 +20,7 @@ accelerates runtime with an initial compilation and optimization stage.
 Fungus mostly targets the original Befunge-93 standard, with some differences:
 * The playfield may be an arbitrary size, up to 16384x16384 cells.
 * Characters are represented as Unicode code points, not ASCII bytes.
-* The `g`, `p`, `&`, and `~` commands are not yet fully implemented.
+* The `g` and `p` commands are not yet implemented.
 * To simplify the optimizer, using a command without enough parameters on the
 stack is considered undefined behavior. No error will be reported for this.
 
