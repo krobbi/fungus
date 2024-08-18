@@ -51,6 +51,17 @@ impl Playfield {
         })
     }
 
+    /// Convert a character to a value.
+    pub fn char_to_value(value: char) -> i32 {
+        value as i32
+    }
+
+    /// Convert a value to a character.
+    pub fn value_to_char(value: i32) -> char {
+        #[allow(clippy::cast_sign_loss)]
+        char::from_u32(value as u32).unwrap_or(char::REPLACEMENT_CHARACTER)
+    }
+
     /// Get the width in cells.
     pub fn width(&self) -> usize {
         self.width
@@ -59,6 +70,18 @@ impl Playfield {
     /// Get the height in cells.
     pub fn height(&self) -> usize {
         self.height
+    }
+
+    /// Get a value from its position.
+    pub fn value(&self, x: i32, y: i32) -> i32 {
+        let x = usize::try_from(x).unwrap_or(usize::MAX);
+        let y = usize::try_from(y).unwrap_or(usize::MAX);
+
+        if x < self.width && y < self.height {
+            Self::char_to_value(self.cells[y * self.width + x])
+        } else {
+            0
+        }
     }
 }
 

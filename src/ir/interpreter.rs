@@ -3,7 +3,7 @@ use std::{
     io::{self, Write},
 };
 
-use crate::pointer::Label;
+use crate::{playfield::Playfield, pointer::Label};
 
 use super::{Exit, Instruction, Program};
 
@@ -135,11 +135,14 @@ impl Interpreter<'_> {
             }
             Instruction::OutputCharacter => {
                 let value = self.pop();
-
-                #[allow(clippy::cast_sign_loss)]
-                let value = char::from_u32(value as u32).unwrap_or(char::REPLACEMENT_CHARACTER);
-
+                let value = Playfield::value_to_char(value);
                 print!("{value}");
+            }
+            Instruction::Get => {
+                let y = self.pop();
+                let x = self.pop();
+                let value = self.program.playfield.value(x, y);
+                self.push(value);
             }
             Instruction::InputInteger => {
                 self.input_integer();
@@ -151,7 +154,7 @@ impl Interpreter<'_> {
 
                 let value = match self.input_chars.pop_front() {
                     None => -1,
-                    Some(value) => value as i32,
+                    Some(value) => Playfield::char_to_value(value),
                 };
 
                 self.push(value);

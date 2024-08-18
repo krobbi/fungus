@@ -11,6 +11,9 @@ use crate::{
 
 /// An intermediate program representation.
 pub struct Program {
+    /// The playfield.
+    playfield: Playfield,
+
     /// The basic blocks.
     blocks: HashMap<Label, Block>,
 }
@@ -32,7 +35,7 @@ impl Program {
             blocks.insert(label, block);
         }
 
-        Ok(Self { blocks })
+        Ok(Self { playfield, blocks })
     }
 
     /// Optimize the program.
@@ -153,6 +156,10 @@ enum Instruction {
     /// `[...][value]` -> `[...]`
     OutputCharacter,
 
+    /// An instruction to get a value from the playfield and push it.  
+    /// `[...][x][y]` -> `[...][value]`
+    Get,
+
     /// An instruction to get an integer from the user and push it.  
     /// `[...]` -> `[...][value]`
     InputInteger,
@@ -182,6 +189,7 @@ impl Instruction {
             '$' => Some(Self::Pop),
             '.' => Some(Self::OutputInteger),
             ',' => Some(Self::OutputCharacter),
+            'g' => Some(Self::Get),
             '&' => Some(Self::InputInteger),
             '~' => Some(Self::InputCharacter),
             '0' => Some(Self::Push(0)),
@@ -214,6 +222,7 @@ impl fmt::Display for Instruction {
             Self::Pop => write!(f, "pop"),
             Self::OutputInteger => write!(f, "output integer"),
             Self::OutputCharacter => write!(f, "output character"),
+            Self::Get => write!(f, "get"),
             Self::InputInteger => write!(f, "input integer"),
             Self::InputCharacter => write!(f, "input character"),
             Self::Push(value) => write!(f, "push {value}"),

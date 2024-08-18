@@ -20,7 +20,7 @@ accelerates runtime with an initial compilation and optimization stage.
 Fungus mostly targets the original Befunge-93 standard, with some differences:
 * The playfield may be an arbitrary size, up to 16384x16384 cells.
 * Characters are represented as Unicode code points, not ASCII bytes.
-* The `g` and `p` commands are not yet implemented.
+* The `p` command is not yet implemented.
 * To simplify the optimizer, using a command without enough parameters on the
 stack is considered undefined behavior. No error will be reported for this.
 
@@ -134,13 +134,15 @@ and the even nastier `p` command. These commands get and put characters to and
 from the playfield. This means that Befunge programs can not only read their
 own source code, but modify themselves at runtime.
 
-Currently, these commands are ignored, but some plans are in place to deal with
-them.
+Currently, the `p` command is ignored, and a copy of the playfield is kept at
+runtime to handle the `g` command. There are some plans in place to improve how
+these commands are handled.
 
 Thanks to peephole optimization, some `g` and `p` commands can be associated
 with constant positions. If only constant positions are used and the program
 can never modify itself, then the commands can be simplified to accessing
-static variables and the playfield can be discarded.
+static variables and the playfield can be discarded. This optimization has not
+been implemented.
 
 During compilation, it is possible to keep track of which positions in the
 playfield may be executed as code, and which can never be reached. If a `p`
