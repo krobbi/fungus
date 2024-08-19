@@ -36,7 +36,7 @@ impl Pointer {
         self.direction = direction;
     }
 
-    /// Advance the pointer by one character on a playfield.
+    /// Advance the pointer by one value cell on a playfield.
     pub fn advance(&mut self, playfield: &Playfield) {
         match self.direction {
             Direction::Right => {
@@ -106,10 +106,10 @@ pub enum Direction {
 /// A mode used by a pointer.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mode {
-    /// A mode where the pointer executes characters as commands.
+    /// A mode where the pointer executes values as commands.
     Command,
 
-    /// A mode where the pointer pushes characters to the stack as values.
+    /// A mode where the pointer pushes values to the stack.
     String,
 }
 

@@ -3,7 +3,10 @@ use std::{
     io::{self, Write},
 };
 
-use crate::{playfield::Playfield, pointer::Label};
+use crate::{
+    playfield::{Playfield, Value},
+    pointer::Label,
+};
 
 use super::{Exit, Instruction, Program};
 
@@ -19,7 +22,7 @@ struct Interpreter<'a> {
     program: &'a Program,
 
     /// The stack.
-    stack: Vec<i32>,
+    stack: Vec<Value>,
 
     /// The character input buffer.
     input_chars: VecDeque<char>,
@@ -108,12 +111,12 @@ impl Interpreter<'_> {
             }
             Instruction::Not => {
                 let value = self.pop();
-                self.push(i32::from(value == 0));
+                self.push(Value::from(value == 0));
             }
             Instruction::Greater => {
                 let r = self.pop();
                 let l = self.pop();
-                self.push(i32::from(l > r));
+                self.push(Value::from(l > r));
             }
             Instruction::Duplicate => {
                 let value = self.pop();
@@ -166,7 +169,7 @@ impl Interpreter<'_> {
     }
 
     /// Handle a division by zero.
-    fn divide_by_zero(&mut self, l: i32, operator: char) {
+    fn divide_by_zero(&mut self, l: Value, operator: char) {
         print!("What do you want the result of {l} {operator} 0 to be? ");
         self.input_integer();
     }
@@ -178,12 +181,12 @@ impl Interpreter<'_> {
     }
 
     /// Push a value to the stack.
-    fn push(&mut self, value: i32) {
+    fn push(&mut self, value: Value) {
         self.stack.push(value);
     }
 
     /// Pop a value from the stack.
-    fn pop(&mut self) -> i32 {
+    fn pop(&mut self) -> Value {
         self.stack.pop().unwrap_or(0)
     }
 }

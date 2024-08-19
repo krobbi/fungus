@@ -5,12 +5,6 @@ use super::{Direction, Mode, Pointer};
 /// The type used by a label for storing its data.
 type Bits = u32;
 
-/// The number of bits used for storing a label's direction and mode.
-const FLAG_BIT_COUNT: u32 = 2 + 1;
-
-/// The number of bits used for storing a label's X or Y position.
-const POSITION_BIT_COUNT: u32 = (Bits::BITS - FLAG_BIT_COUNT) / 2;
-
 /// A compacted representation of a pointer for labeling basic blocks.
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Label {
@@ -20,7 +14,13 @@ pub struct Label {
 
 impl Label {
     /// A label's maximum X or Y position.
-    pub const MAX_POSITION: usize = 2usize.pow(POSITION_BIT_COUNT) - 1;
+    pub const MAX_POSITION: usize = 2usize.pow(Self::POSITION_BITS) - 1;
+
+    /// The number of bits used for storing a label's X or Y position.
+    pub const POSITION_BITS: u32 = (Bits::BITS - Self::FLAG_BITS) / 2;
+
+    /// The number of bits used for storing a label's direction and mode.
+    const FLAG_BITS: u32 = 2 + 1;
 }
 
 impl From<Pointer> for Label {
@@ -37,8 +37,8 @@ impl From<Pointer> for Label {
             Mode::String => 0b100,
         };
 
-        let x = Bits::try_from(value.x).unwrap() << FLAG_BIT_COUNT;
-        let y = Bits::try_from(value.y).unwrap() << (FLAG_BIT_COUNT + POSITION_BIT_COUNT);
+        let x = Bits::try_from(value.x).unwrap() << Self::FLAG_BITS;
+        let y = Bits::try_from(value.y).unwrap() << (Self::FLAG_BITS + Self::POSITION_BITS);
 
         Self {
             data: y | x | mode | direction,
@@ -62,9 +62,9 @@ impl From<Label> for Pointer {
             _ => unreachable!(),
         };
 
-        let x = usize::try_from(value.data >> FLAG_BIT_COUNT).unwrap() & Label::MAX_POSITION;
+        let x = usize::try_from(value.data >> Label::FLAG_BITS).unwrap() & Label::MAX_POSITION;
 
-        let y = usize::try_from(value.data >> (FLAG_BIT_COUNT + POSITION_BIT_COUNT)).unwrap()
+        let y = usize::try_from(value.data >> (Label::FLAG_BITS + Label::POSITION_BITS)).unwrap()
             & Label::MAX_POSITION;
 
         Self {

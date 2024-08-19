@@ -5,7 +5,7 @@ use std::{collections::HashMap, fmt};
 
 use crate::{
     error::Result,
-    playfield::Playfield,
+    playfield::{Playfield, Value},
     pointer::{Direction, Label, Mode, Pointer},
 };
 
@@ -85,14 +85,20 @@ struct Block {
 impl Block {
     /// Create a new basic block from a playfield and a pointer.
     fn new(playfield: &Playfield, pointer: Pointer) -> Self {
+        const QUOTE_VALUE: Value = Playfield::char_to_value('"');
+
         let (instructions, exit) = match (pointer.mode(), playfield[&pointer]) {
-            (_, '"') => (None, Exit::new_string(playfield, pointer)),
-            (Mode::Command, command) => (
-                Instruction::new(command),
-                Exit::from_command(command, playfield, pointer),
-            ),
+            (_, QUOTE_VALUE) => (None, Exit::new_string(playfield, pointer)),
+            (Mode::Command, command) => {
+                let command = Playfield::value_to_char(command);
+
+                (
+                    Instruction::new(command),
+                    Exit::from_command(command, playfield, pointer),
+                )
+            }
             (Mode::String, value) => (
-                Some(Instruction::Push(i32::try_from(u32::from(value)).unwrap())),
+                Some(Instruction::Push(value)),
                 Exit::new(playfield, pointer),
             ),
         };
@@ -170,7 +176,7 @@ enum Instruction {
 
     /// An instruction to push a value.  
     /// `[...]` -> `[...][value]`
-    Push(i32),
+    Push(Value),
 }
 
 impl Instruction {

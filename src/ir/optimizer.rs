@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::pointer::Label;
+use crate::{playfield::Value, pointer::Label};
 
 use super::{Exit, Instruction, Program};
 
@@ -231,7 +231,7 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         [Push(1), Multiply] => Some(vec![]),
         [Push(1), Divide] => Some(vec![]),
         [Push(1), Modulo] => Some(vec![Pop, Push(0)]),
-        &[Push(value), Not] => Some(vec![Push(i32::from(value == 0))]),
+        &[Push(value), Not] => Some(vec![Push(Value::from(value == 0))]),
         &[Push(value), Duplicate] => Some(vec![Push(value), Push(value)]),
         [Push(_), Pop] => Some(vec![]),
         [Not, Not, Not] => Some(vec![Not]),
@@ -251,7 +251,7 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         [Push(l), Push(r), Multiply] => Some(vec![Push(l * r)]),
         [Push(l), Push(r @ (..=-1 | 1..)), Divide] => Some(vec![Push(l / r)]),
         [Push(l), Push(r @ (..=-1 | 1..)), Modulo] => Some(vec![Push(l % r)]),
-        [Push(l), Push(r), Greater] => Some(vec![Push(i32::from(l > r))]),
+        [Push(l), Push(r), Greater] => Some(vec![Push(Value::from(l > r))]),
         &[Push(a), Push(b), Swap] => Some(vec![Push(b), Push(a)]),
         _ => None,
     }

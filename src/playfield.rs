@@ -5,20 +5,23 @@ use crate::{
     pointer::{Label, Pointer},
 };
 
-/// A 2D grid of characters.
+/// A value stored in a playfield or on the stack.
+pub type Value = i32;
+
+/// A 2D grid of values.
 pub struct Playfield {
-    /// The width in characters.
+    /// The width in value cells.
     width: usize,
 
-    /// The height in characters.
+    /// The height in value cells.
     height: usize,
 
-    /// The characters.
-    cells: Vec<char>,
+    /// The values.
+    values: Vec<Value>,
 }
 
 impl Playfield {
-    /// A playfield's maximum width or height.
+    /// A playfield's maximum width or height in value cells.
     pub const MAX_LENGTH: usize = Label::MAX_POSITION + 1;
 
     /// Create a new playfield from source code.
@@ -36,49 +39,49 @@ impl Playfield {
             return Err(Error::PlayfieldTooLarge);
         }
 
-        let mut cells = vec!['\0'; width * height];
+        let mut values = vec![0; width * height];
 
         for (y, line) in source.iter().enumerate() {
-            for (x, &character) in line.iter().enumerate() {
-                cells[y * width + x] = character;
+            for (x, &value) in line.iter().enumerate() {
+                values[y * width + x] = Self::char_to_value(value);
             }
         }
 
         Ok(Self {
             width,
             height,
-            cells,
+            values,
         })
     }
 
     /// Convert a character to a value.
-    pub fn char_to_value(value: char) -> i32 {
-        value as i32
+    pub const fn char_to_value(value: char) -> Value {
+        value as Value
     }
 
     /// Convert a value to a character.
-    pub fn value_to_char(value: i32) -> char {
+    pub fn value_to_char(value: Value) -> char {
         #[allow(clippy::cast_sign_loss)]
         char::from_u32(value as u32).unwrap_or(char::REPLACEMENT_CHARACTER)
     }
 
-    /// Get the width in cells.
+    /// Get the width in value cells.
     pub fn width(&self) -> usize {
         self.width
     }
 
-    /// Get the height in cells.
+    /// Get the height in value cells.
     pub fn height(&self) -> usize {
         self.height
     }
 
     /// Get a value from its position.
-    pub fn value(&self, x: i32, y: i32) -> i32 {
+    pub fn value(&self, x: Value, y: Value) -> Value {
         let x = usize::try_from(x).unwrap_or(usize::MAX);
         let y = usize::try_from(y).unwrap_or(usize::MAX);
 
         if x < self.width && y < self.height {
-            Self::char_to_value(self.cells[y * self.width + x])
+            self.values[y * self.width + x]
         } else {
             0
         }
@@ -86,7 +89,7 @@ impl Playfield {
 }
 
 impl ops::Index<&Pointer> for Playfield {
-    type Output = char;
+    type Output = Value;
 
     fn index(&self, index: &Pointer) -> &Self::Output {
         let (x, y) = index.position();
@@ -96,7 +99,7 @@ impl ops::Index<&Pointer> for Playfield {
             "playfield index out of bounds"
         );
 
-        &self.cells[y * self.width + x]
+        &self.values[y * self.width + x]
     }
 }
 
@@ -106,42 +109,60 @@ mod tests {
 
     use super::*;
 
+    /// Test that values are signed integers with enough bits.
+    #[test]
+    fn test_value() {
+        assert_eq!(Value::default(), 0, "values are not integers");
+
+        assert_ne!(
+            Value::default().wrapping_sub(1),
+            Value::MAX,
+            "values are unsigned"
+        );
+
+        assert!(
+            Value::BITS > 21,
+            "values are not large enough to store a character plus a sign bit"
+        );
+
+        assert!(
+            Value::BITS > Label::POSITION_BITS,
+            "values are not large enough to store a position plus a sign bit"
+        );
+    }
+
     /// Test that empty playfields contain a single null character.
     #[test]
     fn test_empty() {
         let playfield = new_playfield("", 1, 1);
-
-        assert_eq!(
-            playfield.cells[0], '\0',
-            "empty playfield is not a null character"
-        );
+        check_index(&playfield, 0, '\0');
     }
 
     /// Test that playfields are stored in row-major order.
     #[test]
     fn test_order() {
         let playfield = new_playfield("012\n345", 3, 2);
-        assert_eq!(playfield.cells[0], '0');
-        assert_eq!(playfield.cells[1], '1');
-        assert_eq!(playfield.cells[2], '2');
-        assert_eq!(playfield.cells[3], '3');
-        assert_eq!(playfield.cells[4], '4');
-        assert_eq!(playfield.cells[5], '5');
+        check_index(&playfield, 0, '0');
+        check_index(&playfield, 1, '1');
+        check_index(&playfield, 2, '2');
+        check_index(&playfield, 3, '3');
+        check_index(&playfield, 4, '4');
+        check_index(&playfield, 5, '5');
     }
 
     /// Test that staggered playfields are padded with null characters.
     #[test]
     fn test_padding() {
         let playfield = new_playfield("012\n3\n67", 3, 3);
-        assert_eq!(playfield.cells[0], '0');
-        assert_eq!(playfield.cells[1], '1');
-        assert_eq!(playfield.cells[2], '2');
-        assert_eq!(playfield.cells[3], '3');
-        assert_eq!(playfield.cells[4], '\0');
-        assert_eq!(playfield.cells[5], '\0');
-        assert_eq!(playfield.cells[6], '6');
-        assert_eq!(playfield.cells[7], '7');
-        assert_eq!(playfield.cells[8], '\0');
+        check_index(&playfield, 0, '0');
+        check_index(&playfield, 1, '1');
+        check_index(&playfield, 2, '2');
+        check_index(&playfield, 3, '3');
+        check_index(&playfield, 4, '\0');
+        check_index(&playfield, 5, '\0');
+        check_index(&playfield, 6, '6');
+        check_index(&playfield, 7, '7');
+        check_index(&playfield, 8, '\0');
     }
 
     /// Test that trailing empty lines are not included in playfields.
@@ -167,12 +188,14 @@ mod tests {
     #[test]
     fn test_index() {
         /// Check that a pointer indexes to a given character after advancing.
-        fn check(playfield: &Playfield, pointer: &mut Pointer, character: char) {
+        fn check(playfield: &Playfield, pointer: &mut Pointer, value: char) {
             pointer.advance(playfield);
 
             assert_eq!(
-                playfield[pointer], character,
-                "playfield character is not {character}"
+                playfield[pointer],
+                Playfield::char_to_value(value),
+                "playfield character is not '{}'",
+                value.escape_default()
             );
         }
 
@@ -229,11 +252,21 @@ mod tests {
         assert_eq!(playfield.height, height, "playfield height is not {height}");
 
         assert_eq!(
-            playfield.cells.len(),
+            playfield.values.len(),
             width * height,
             "playfield size is not {width}x{height}"
         );
 
         playfield
+    }
+
+    /// Check that a playfield's indexed value matches a given character.
+    fn check_index(playfield: &Playfield, index: usize, value: char) {
+        assert_eq!(
+            playfield.values[index],
+            Playfield::char_to_value(value),
+            "indexed character is not '{}'",
+            value.escape_default()
+        );
     }
 }
