@@ -20,7 +20,7 @@ accelerates runtime with an initial compilation and optimization stage.
 Fungus mostly targets the original Befunge-93 standard, with some differences:
 * The playfield may be an arbitrary size, up to 16384x16384 cells.
 * Characters are represented as Unicode code points, not ASCII bytes.
-* The `p` command is not yet implemented.
+* Potentially self-modifying code is not allowed.
 * To simplify the optimizer, using a command without enough parameters on the
 stack is considered undefined behavior. No error will be reported for this.
 
@@ -102,7 +102,7 @@ Luckily, this is fixed by the optimization stage.
 
 ## Optimizations
 After the program has been compiled, multiple techniques are used to improve
-runtime performance, memory usage, and potential future analysis:
+runtime performance, memory usage, and analysis of `p` commands:
 * Basic block merging - If a basic block's only entry point is an unconditional
 jump from another basic block, it can be deleted and have its instructions and
 exit appended to its predecessor.
@@ -134,10 +134,6 @@ and the even nastier `p` command. These commands get and put characters to and
 from the playfield. This means that Befunge programs can not only read their
 own source code, but modify themselves at runtime.
 
-Currently, the `p` command is ignored, and a copy of the playfield is kept at
-runtime to handle the `g` command. There are some plans in place to improve how
-these commands are handled.
-
 Thanks to peephole optimization, some `g` and `p` commands can be associated
 with constant positions. If only constant positions are used and the program
 can never modify itself, then the commands can be simplified to accessing
@@ -150,8 +146,8 @@ command writes to an arbitrary position, or a constant position in the code,
 then the program may be self-modifying.
 
 If a `p` command is self-modifying, then the program will need to be recompiled
-after the write, with the entry point after the command. Before this is
-implemented, an error for self-modifying code can be thrown instead.
+after the write, with the entry point after the command. This is unimplemented,
+so an error for self-modifying code is thrown instead.
 
 This analysis depends on the optimization stage, so it should be a separate
 stage after optimization.

@@ -21,6 +21,9 @@ struct Interpreter<'a> {
     /// The program.
     program: &'a Program,
 
+    /// The playfield.
+    playfield: Playfield,
+
     /// The stack.
     stack: Vec<Value>,
 
@@ -33,6 +36,7 @@ impl Interpreter<'_> {
     fn new(program: &Program) -> Interpreter {
         Interpreter {
             program,
+            playfield: program.playfield.clone(),
             stack: vec![],
             input_chars: VecDeque::new(),
         }
@@ -144,8 +148,15 @@ impl Interpreter<'_> {
             Instruction::Get => {
                 let y = self.pop();
                 let x = self.pop();
-                let value = self.program.playfield.value(x, y);
+                let value = self.playfield.value(x, y);
                 self.push(value);
+            }
+            Instruction::Put => {
+                todo!();
+            }
+            &Instruction::PutAt(x, y) => {
+                let value = self.pop();
+                self.playfield.put_value(value, x, y);
             }
             Instruction::InputInteger => {
                 self.input_integer();

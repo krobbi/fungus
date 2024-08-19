@@ -1,10 +1,13 @@
 mod interpreter;
 mod optimizer;
 
-use std::{collections::HashMap, fmt};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt,
+};
 
 use crate::{
-    error::Result,
+    error::{Error, Result},
     playfield::{Playfield, Value},
     pointer::{Direction, Label, Mode, Pointer},
 };
@@ -22,6 +25,7 @@ impl Program {
     /// Create a new program from source code.
     pub fn new(source: &str) -> Result<Self> {
         let playfield = Playfield::new(source)?;
+        let mut positions = HashSet::new();
         let mut labels = vec![Label::default()];
         let mut blocks = HashMap::new();
 
@@ -30,17 +34,33 @@ impl Program {
                 continue;
             }
 
-            let block = Block::new(&playfield, Pointer::from(label));
+            let pointer = Pointer::from(label);
+            positions.insert(pointer.position());
+            let block = Block::new(&playfield, pointer);
             labels.append(&mut block.exit.exit_labels());
             blocks.insert(label, block);
         }
 
-        Ok(Self { playfield, blocks })
-    }
+        let mut program = Self { playfield, blocks };
+        optimizer::optimize_program(&mut program);
 
-    /// Optimize the program.
-    pub fn optimize(&mut self) {
-        optimizer::optimize_program(self);
+        for block in program.blocks.values() {
+            for instruction in &block.instructions {
+                match instruction {
+                    Instruction::Put => return Err(Error::SelfModifyingCode),
+                    &Instruction::PutAt(x, y) => {
+                        let position = Playfield::values_to_position(x, y);
+
+                        if positions.contains(&position) {
+                            return Err(Error::SelfModifyingCode);
+                        }
+                    }
+                    _ => (),
+                }
+            }
+        }
+
+        Ok(program)
     }
 
     /// Interpret the program.
@@ -166,6 +186,15 @@ enum Instruction {
     /// `[...][x][y]` -> `[...][value]`
     Get,
 
+    /// An instruction to pop a value and put it to the playfield.  
+    /// `[...][value][x][y]` -> `[...]`
+    Put,
+
+    /// An instruction to pop a value and put it to the playfield at a constant
+    /// position.  
+    /// `[...][value]` -> `[...]`
+    PutAt(Value, Value),
+
     /// An instruction to get an integer from the user and push it.  
     /// `[...]` -> `[...][value]`
     InputInteger,
@@ -196,6 +225,7 @@ impl Instruction {
             '.' => Some(Self::OutputInteger),
             ',' => Some(Self::OutputCharacter),
             'g' => Some(Self::Get),
+            'p' => Some(Self::Put),
             '&' => Some(Self::InputInteger),
             '~' => Some(Self::InputCharacter),
             '0' => Some(Self::Push(0)),
@@ -229,6 +259,8 @@ impl fmt::Display for Instruction {
             Self::OutputInteger => write!(f, "output integer"),
             Self::OutputCharacter => write!(f, "output character"),
             Self::Get => write!(f, "get"),
+            Self::Put => write!(f, "put"),
+            Self::PutAt(x, y) => write!(f, "put {x}, {y}"),
             Self::InputInteger => write!(f, "input integer"),
             Self::InputCharacter => write!(f, "input character"),
             Self::Push(value) => write!(f, "push {value}"),

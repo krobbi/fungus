@@ -16,6 +16,9 @@ pub enum Error {
 
     /// An error caused by loading a playfield above the maximum size.
     PlayfieldTooLarge,
+
+    /// An error caused by compiling potentially self-modifying code.
+    SelfModifyingCode,
 }
 
 impl Error {
@@ -35,7 +38,7 @@ impl error::Error for Error {
         match self {
             Self::Io(error) => Some(error),
             Self::Clap(error) => Some(error),
-            Self::PlayfieldTooLarge => None,
+            _ => None,
         }
     }
 }
@@ -48,6 +51,7 @@ impl fmt::Display for Error {
             Self::PlayfieldTooLarge => {
                 write!(f, "playfield is larger than {0}x{0}", Playfield::MAX_LENGTH)
             }
+            Self::SelfModifyingCode => write!(f, "program may contain self-modifying code"),
         }
     }
 }

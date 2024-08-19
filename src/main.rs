@@ -18,8 +18,7 @@ fn main() {
 /// Run Fungus and get a result.
 fn run_fungus() -> Result<()> {
     let config = Config::new()?;
-    let mut program = Program::new(&fs::read_to_string(config.path())?)?;
-    program.optimize();
+    let program = Program::new(&fs::read_to_string(config.path())?)?;
 
     if config.dump() {
         program.dump();

@@ -253,6 +253,7 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         [Push(l), Push(r @ (..=-1 | 1..)), Modulo] => Some(vec![Push(l % r)]),
         [Push(l), Push(r), Greater] => Some(vec![Push(Value::from(l > r))]),
         &[Push(a), Push(b), Swap] => Some(vec![Push(b), Push(a)]),
+        &[Push(x), Push(y), Put] => Some(vec![PutAt(x, y)]),
         _ => None,
     }
 }

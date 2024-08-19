@@ -9,6 +9,7 @@ use crate::{
 pub type Value = i32;
 
 /// A 2D grid of values.
+#[derive(Clone)]
 pub struct Playfield {
     /// The width in value cells.
     width: usize,
@@ -65,6 +66,13 @@ impl Playfield {
         char::from_u32(value as u32).unwrap_or(char::REPLACEMENT_CHARACTER)
     }
 
+    /// Convert values to a position tuple.
+    pub fn values_to_position(x: Value, y: Value) -> (usize, usize) {
+        let x = usize::try_from(x).unwrap_or(usize::MAX);
+        let y = usize::try_from(y).unwrap_or(usize::MAX);
+        (x, y)
+    }
+
     /// Get the width in value cells.
     pub fn width(&self) -> usize {
         self.width
@@ -77,13 +85,21 @@ impl Playfield {
 
     /// Get a value from its position.
     pub fn value(&self, x: Value, y: Value) -> Value {
-        let x = usize::try_from(x).unwrap_or(usize::MAX);
-        let y = usize::try_from(y).unwrap_or(usize::MAX);
+        let (x, y) = Self::values_to_position(x, y);
 
         if x < self.width && y < self.height {
             self.values[y * self.width + x]
         } else {
             0
+        }
+    }
+
+    /// Put a value at a position.
+    pub fn put_value(&mut self, value: Value, x: Value, y: Value) {
+        let (x, y) = Self::values_to_position(x, y);
+
+        if x < self.width && y < self.height {
+            self.values[y * self.width + x] = value;
         }
     }
 }
