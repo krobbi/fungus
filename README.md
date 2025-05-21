@@ -1,19 +1,6 @@
 # Fungus
-_Optimizing Befunge interpreter._
+**Fungus is being rewritten. This document may not be accurate.**
 
-# Contents
-1. [About](#about)
-2. [Usage](#usage)
-   * [Arguments](#arguments)
-   * [Options](#options)
-3. [Technical Details](#technical-details)
-   * [How to Compile Befunge](#how-to-compile-befunge)
-   * [Optimizations](#optimizations)
-   * [The Hard Part](#the-hard-part)
-4. [Dependencies](#dependencies)
-5. [License](#license)
-
-# About
 Fungus is a [Befunge](https://esolangs.org/wiki/Befunge) interpreter that
 accelerates runtime with an initial compilation and optimization stage.
 
@@ -158,7 +145,5 @@ Fungus uses the following libraries:
 * [rand](https://crates.io/crates/rand) - Random branching in interpreter.
 
 # License
-Fungus is released under the MIT License:  
-https://krobbi.github.io/license/2024/mit.txt
-
-See [LICENSE.txt](/LICENSE.txt) for a full copy of the license text.
+Fungus is released under the MIT License. See [LICENSE.txt](/LICENSE.txt) for a
+full copy of the license text.
