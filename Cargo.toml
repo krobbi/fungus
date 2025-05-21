@@ -10,6 +10,9 @@ keywords = ["befunge", "esolang", "interpreter"]
 categories = ["command-line-utilities", "compilers"]
 publish = false
 
+[dependencies]
+clap = { version = "4.5.38", features = ["derive"] }
+
 [profile.release]
 codegen-units = 1
 lto = "fat"

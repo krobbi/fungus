@@ -14,7 +14,7 @@ stack is considered undefined behavior. No error will be reported for this.
 # Usage
 Fungus is run from the command line:
 ```shell
-fungus [OPTIONS] <PATH>
+fungus <PATH>
 ```
 
 Fungus will load the Befunge source file at `<PATH>` and interpret it as a
@@ -28,17 +28,13 @@ program.
 The source file at `<PATH>` must be formatted as UTF-8.
 
 ## Options
-| Short | Long        | Usage                 |
-| :---- | :---------- | :-------------------- |
-| `-d`  | `--dump`    | Print pseudo-assembly |
-| `-h`  | `--help`    | Print help            |
-| `-V`  | `--version` | Print version         |
+| Short | Long        | Usage         |
+| :---- | :---------- | :------------ |
+| `-h`  | `--help`    | Print help    |
+| `-V`  | `--version` | Print version |
 
-If the `--dump` flag is set, the program will be printed as pseudo-assembly
-instead of being interpreted.
-
-If the `--help` or `--version` flags are set, Fungus will print information but
-not perform any action.
+If the `--help` or `--version` flag is set, then Fungus will print information
+but not perform any action.
 
 # Technical Details
 Compiling Befunge can be challenging because Befunge is an esoteric programming
@@ -142,7 +138,6 @@ stage after optimization.
 # Dependencies
 Fungus uses the following libraries:
 * [clap](https://crates.io/crates/clap) - Command line argument parsing.
-* [rand](https://crates.io/crates/rand) - Random branching in interpreter.
 
 # License
 Fungus is released under the MIT License. See [LICENSE.txt](/LICENSE.txt) for a
