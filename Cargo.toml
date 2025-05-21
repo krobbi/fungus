@@ -2,17 +2,13 @@
 name = "fungus"
 version = "0.1.0"
 authors = ["Chris Roberts"]
-edition = "2021"
-description = "Optimizing Befunge interpreter."
+edition = "2024"
+description = "Optimizing Befunge interpreter"
 repository = "https://github.com/krobbi/fungus"
 license = "MIT"
 keywords = ["befunge", "esolang", "interpreter"]
 categories = ["command-line-utilities", "compilers"]
 publish = false
-
-[dependencies]
-clap = { version = "4.5.15", features = ["derive"] }
-rand = "0.8.5"
 
 [profile.release]
 codegen-units = 1
