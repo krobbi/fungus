@@ -5,7 +5,7 @@ Fungus is a [Befunge](https://esolangs.org/wiki/Befunge) interpreter that
 accelerates runtime with an initial compilation and optimization stage.
 
 Fungus mostly targets the original Befunge-93 standard, with some differences:
-* The playfield may be an arbitrary size, up to 16384x16384 cells.
+* The playfield may be an arbitrary size.
 * Characters are represented as Unicode code points, not ASCII bytes.
 * Potentially self-modifying code is not allowed.
 * To simplify the optimizer, using a command without enough parameters on the
