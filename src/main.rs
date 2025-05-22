@@ -1,10 +1,10 @@
 mod config;
 mod error;
 
-use std::process::ExitCode;
+use std::{fs, path::Path, process::ExitCode};
 
 use config::Config;
-use error::Result;
+use error::{Error, Result};
 
 /// Runs Fungus and returns an exit code.
 fn main() -> ExitCode {
@@ -14,9 +14,19 @@ fn main() -> ExitCode {
     }
 }
 
-/// Runs Fungus and returns a result.
+/// Runs Fungus.
 fn try_run() -> Result<()> {
-    let config = Config::new()?;
-    println!("path: {}", config.path().display());
+    let config = Config::try_new()?;
+    let source = try_read_source(config.path())?;
+    println!("{source}");
     Ok(())
+}
+
+/// Reads source code from the source file's path.
+fn try_read_source(path: &Path) -> Result<String> {
+    if path.is_file() {
+        fs::read_to_string(path).map_err(Error::CouldNotReadSourceFile)
+    } else {
+        Err(Error::SourceFileDoesNotExist)
+    }
 }

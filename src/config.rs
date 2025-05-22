@@ -12,7 +12,7 @@ pub struct Config {
 
 impl Config {
     /// Creates new configuration data from command line arguments.
-    pub fn new() -> Result<Self> {
+    pub fn try_new() -> Result<Self> {
         Ok(Self {
             args: Args::try_parse()?,
         })
