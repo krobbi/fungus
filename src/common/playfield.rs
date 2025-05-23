@@ -40,16 +40,16 @@ impl Playfield {
 
 impl Display for Playfield {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let mut buffer = String::with_capacity((self.width + 1) * self.height);
+        let mut data = String::with_capacity((self.width + 1) * self.height);
         for row in self.cells.chunks_exact(self.width) {
             for &value in row {
-                buffer.push(value.into_printable_ascii_char_lossy());
+                data.push(value.into_printable_ascii_char_lossy());
             }
-            buffer.push('\n');
+            data.push('\n');
         }
 
-        let _ = buffer.pop(); // Remove trailing line feed.
+        let _ = data.pop(); // Remove trailing line feed.
 
-        f.write_str(&buffer)
+        f.write_str(&data)
     }
 }
