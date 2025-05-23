@@ -13,9 +13,8 @@ pub struct Config {
 impl Config {
     /// Creates new configuration data from command line arguments.
     pub fn try_new() -> Result<Self> {
-        Ok(Self {
-            args: Args::try_parse()?,
-        })
+        let args = Args::try_parse()?;
+        Ok(Self { args })
     }
 
     /// Returns the path to the source file.
