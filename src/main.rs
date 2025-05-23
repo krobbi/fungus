@@ -22,6 +22,7 @@ fn try_run() -> Result<()> {
     let source = try_read_source(config.path())?;
     let playfield = Playfield::new(&source);
     println!("{playfield}");
+    common::program_counter::temp_test_ordering();
     Ok(())
 }
 
