@@ -1,13 +1,11 @@
 use std::fmt::{self, Display, Formatter};
 
 /// A Befunge program counter.
+// Do not change the field order to be more 'pretty' - it allows the `Ord` trait
+// to sort program counters in a user-friendly order. Ordering program counters
+// also allows compilation and debug dumps to be deterministic.
 #[derive(Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ProgramCounter {
-    // Do not change the order of these fields to be more 'pretty' - it allows
-    // `#[derive(Ord)]` to sort program counters in a user-friendly order.
-    // Ordering program counters also allows compilation and debug dumps to be
-    // deterministic.
-
     /// The Y coordinate in cells from the top edge.
     y: usize,
 
@@ -95,11 +93,11 @@ pub fn temp_test_ordering() {
             Direction::Right,
         ] {
             program_counters.push(ProgramCounter {
-                x,
                 y,
+                x,
                 mode,
                 direction,
-            })
+            });
         }
 
         program_counters
