@@ -65,8 +65,6 @@ impl Display for Playfield {
             data.push('\n');
         }
 
-        let _ = data.pop(); // Remove trailing line feed.
-
-        f.write_str(&data)
+        f.write_str(data.trim_end())
     }
 }
