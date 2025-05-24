@@ -70,12 +70,12 @@ state and a playfield, it is possible to build a
 instruction and exits into a set of possible next states.
 
 The following algorithm can be used to build a representation of the program:
-1. Add the initial state to a set of unexplored states.
-2. While there are unexplored states:
-   1. Remove a state from the set of unexplored states.
+1. Add the initial state to a set of unvisited states.
+2. While there are unvisited states:
+   1. Remove a state from the set of unvisited states.
    2. If there is no basic block for the removed state:
       1. Build a basic block for the state.
-      2. Add the basic block's exit states to the set of unexplored states.
+      2. Add the basic block's exit states to the set of unvisited states.
 
 This converts the program to a
 [control-flow graph](https://en.wikipedia.org/wiki/Control-flow_graph) with

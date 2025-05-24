@@ -5,7 +5,7 @@ mod ir;
 
 use std::{fs, path::Path, process::ExitCode};
 
-use common::{Playfield, ProgramCounter};
+use common::Playfield;
 use config::Config;
 use error::{Error, Result};
 
@@ -22,9 +22,8 @@ fn try_run() -> Result<()> {
     let config = Config::try_new()?;
     let source = try_read_source(config.path())?;
     let playfield = Playfield::new(&source);
-    let program_counter = ProgramCounter::default();
-    let basic_block = ir::build_basic_block(&playfield, &program_counter);
-    println!("{basic_block}");
+    let program = ir::build_program(&playfield);
+    println!("{program}");
     Ok(())
 }
 

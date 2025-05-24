@@ -19,7 +19,7 @@ impl From<ProgramCounter> for ExitPoint {
 impl Display for ExitPoint {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Jump(l) => write!(f, "{:<8}{l}", "jump"),
+            Self::Jump(l) => write!(f, "{:8}{l}", "jump"),
         }
     }
 }
