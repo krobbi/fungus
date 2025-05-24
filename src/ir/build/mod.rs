@@ -102,6 +102,7 @@ impl<'a> BuildContext<'a> {
                 .moved_forward(bounds)
                 .moved_forward(bounds)
                 .into(),
+            (Mode::Command, '@') => ExitPoint::End,
             (Mode::String, '"') => program_counter
                 .with_mode(Mode::Command)
                 .moved_forward(bounds)
@@ -121,6 +122,7 @@ impl ExitPoint {
     fn to_program_counters(&self) -> Vec<ProgramCounter> {
         match self {
             Self::Jump(l) => l.to_program_counter().into_iter().collect(),
+            Self::End => Vec::new(),
         }
     }
 }

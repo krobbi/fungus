@@ -8,6 +8,9 @@ use super::Label;
 pub enum ExitPoint {
     /// An unconditional jump to a basic block.
     Jump(Label),
+
+    /// A program ending.
+    End,
 }
 
 impl From<ProgramCounter> for ExitPoint {
@@ -20,6 +23,7 @@ impl Display for ExitPoint {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Jump(l) => write!(f, "{:8}{l}", "jump"),
+            Self::End => f.write_str("end"),
         }
     }
 }
