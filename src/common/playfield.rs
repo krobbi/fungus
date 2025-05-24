@@ -36,6 +36,23 @@ impl Playfield {
             cells,
         }
     }
+
+    /// Returns the bounds in cells.
+    pub fn bounds(&self) -> (usize, usize) {
+        (self.width, self.height)
+    }
+
+    /// Returns the value at a position in cells. Returns `None` if the position
+    /// is out of bounds.
+    pub fn get(&self, position: (usize, usize)) -> Option<Value> {
+        let (x, y) = position;
+
+        if x < self.width {
+            self.cells.get(x + y * self.width).copied()
+        } else {
+            None
+        }
+    }
 }
 
 impl Display for Playfield {

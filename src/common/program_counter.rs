@@ -4,12 +4,12 @@ use std::fmt::{self, Display, Formatter};
 // Do not change the field order to be more 'pretty' - it allows the `Ord` trait
 // to sort program counters in a user-friendly order. Ordering program counters
 // also allows compilation and debug dumps to be deterministic.
-#[derive(Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ProgramCounter {
-    /// The Y coordinate in cells from the top edge.
+    /// The Y coordinate in cells from the top edge of a playfield.
     y: usize,
 
-    /// The X coordinate in cells from the left edge.
+    /// The X coordinate in cells from the left edge of a playfield.
     x: usize,
 
     /// The mode.
@@ -17,6 +17,58 @@ pub struct ProgramCounter {
 
     /// The forward direction.
     direction: Direction,
+}
+
+impl ProgramCounter {
+    /// Returns the position in cells from the top-left corner of a playfield.
+    pub fn position(&self) -> (usize, usize) {
+        (self.x, self.y)
+    }
+
+    /// Returns the mode.
+    pub fn mode(&self) -> Mode {
+        self.mode
+    }
+
+    /// Returns a clone of the program counter with a mode.
+    pub fn with_mode(&self, mode: Mode) -> Self {
+        let mut program_counter = self.clone();
+        program_counter.mode = mode;
+        program_counter
+    }
+
+    /// Returns a clone of the program counter moved forward by one cell with
+    /// bounds in cells.
+    pub fn moved_forward(&self, bounds: (usize, usize)) -> Self {
+        self.moved_in_direction(self.direction, bounds)
+    }
+
+    /// Returns a clone of the program counter moved in a direction by one cell
+    /// with bounds in cells.
+    pub fn moved_in_direction(&self, direction: Direction, bounds: (usize, usize)) -> Self {
+        let mut program_counter = self.clone();
+        program_counter.direction = direction;
+
+        let (coordinate, max_coordinate) = match direction {
+            Direction::Right | Direction::Left => (&mut program_counter.x, bounds.0 - 1),
+            Direction::Down | Direction::Up => (&mut program_counter.y, bounds.1 - 1),
+        };
+
+        match direction {
+            Direction::Right | Direction::Down => {
+                *coordinate = if *coordinate < max_coordinate {
+                    *coordinate + 1
+                } else {
+                    0
+                }
+            }
+            Direction::Left | Direction::Up => {
+                *coordinate = coordinate.checked_sub(1).unwrap_or(max_coordinate);
+            }
+        }
+
+        program_counter
+    }
 }
 
 impl Display for ProgramCounter {
@@ -78,47 +130,5 @@ impl Display for Mode {
         };
 
         f.write_str(data)
-    }
-}
-
-/// Prints some program counters in order to show how they are ordered.
-// TODO: Remove this temporary test function.
-pub fn temp_test_ordering() {
-    fn direction_program_counters(x: usize, y: usize, mode: Mode) -> Vec<ProgramCounter> {
-        let mut program_counters = Vec::with_capacity(4);
-        for direction in [
-            Direction::Up,
-            Direction::Down,
-            Direction::Left,
-            Direction::Right,
-        ] {
-            program_counters.push(ProgramCounter {
-                y,
-                x,
-                mode,
-                direction,
-            });
-        }
-
-        program_counters
-    }
-
-    fn mode_program_counters(x: usize, y: usize) -> Vec<ProgramCounter> {
-        let mut program_counters = Vec::with_capacity(8);
-        program_counters.append(&mut direction_program_counters(x, y, Mode::String));
-        program_counters.append(&mut direction_program_counters(x, y, Mode::Command));
-
-        program_counters
-    }
-
-    let mut program_counters = Vec::with_capacity(32);
-    program_counters.append(&mut mode_program_counters(0, 0));
-    program_counters.append(&mut mode_program_counters(0, 1));
-    program_counters.append(&mut mode_program_counters(1, 0));
-    program_counters.append(&mut mode_program_counters(1, 1));
-    program_counters.sort();
-
-    for program_counter in program_counters {
-        println!("{program_counter}");
     }
 }

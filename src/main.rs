@@ -1,10 +1,11 @@
 mod common;
 mod config;
 mod error;
+mod ir;
 
 use std::{fs, path::Path, process::ExitCode};
 
-use common::Playfield;
+use common::{Playfield, ProgramCounter};
 use config::Config;
 use error::{Error, Result};
 
@@ -21,8 +22,9 @@ fn try_run() -> Result<()> {
     let config = Config::try_new()?;
     let source = try_read_source(config.path())?;
     let playfield = Playfield::new(&source);
-    println!("{playfield}");
-    common::program_counter::temp_test_ordering();
+    let program_counter = ProgramCounter::default();
+    let basic_block = ir::build_basic_block(&playfield, &program_counter);
+    println!("{basic_block}");
     Ok(())
 }
 

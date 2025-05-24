@@ -2,7 +2,7 @@
 **Fungus is being rewritten. This document may not be accurate.**
 
 Fungus is a [Befunge](https://esolangs.org/wiki/Befunge) interpreter that
-accelerates runtime with an initial compilation and optimization stage.
+accelerates runtime with an initial building and optimization stage.
 
 Fungus mostly targets the original Befunge-93 standard, with some differences:
 * The playfield may be an arbitrary size.
@@ -37,8 +37,9 @@ If the `--help` or `--version` flag is set, then Fungus will print information
 but not perform any action.
 
 # Technical Details
-Compiling Befunge can be challenging because Befunge is an esoteric programming
-language that is intentionally designed to be difficult to compile.
+Representing a Befunge program's behavior in a data structure can be
+challenging because Befunge is an esoteric programming language that is
+intentionally designed to be difficult to compile.
 
 ```befunge
 <v"Hello, world!"+910
@@ -47,29 +48,28 @@ language that is intentionally designed to be difficult to compile.
 
 In Befunge, a program consists of a playfield
 (a 2D grid containing the characters from the source code) with an imaginary
-instruction pointer moving through it.
+program counter moving through it.
 
-Starting in the top-left corner, and moving to the right, the instruction
-pointer processes each character it encounters as a command
-(unknown commands do nothing). The instruction pointer can change direction
-(`^`, `v`, `<`, `>`), including conditionally (`_`, `|`, `?`), jump over the
-next command (`#`), and even wrap around the playfield.
+Starting in the top-left corner, and moving to the right, the program counter
+processes each character it encounters as a command. The program counter can
+change direction (`^`, `v`, `<`, `>`), including conditionally (`_`, `|`, `?`),
+jump over the next command (`#`), and even wrap around the playfield.
 
-Additionally, the instruction pointer can toggle between command mode and
-string mode (`"`). In string mode, the instruction pointer pushes characters it
-encounters to the stack until it exits string mode.
+Additionally, the program counter can toggle between command mode and string
+mode (`"`). In string mode, the program counter pushes characters it encounters
+to the stack until it exits string mode.
 
 Other commands are available for math, logic, stack manipulation, input, and
 output.
 
-## How to Compile Befunge
-Despite its complexity, the instruction pointer has a representable state
+## Building a Graph
+Despite its complexity, the program counter has a representable state
 (position, direction, and mode), and always starts in the same state. Given a
 state and a playfield, it is possible to build a
 [basic block](https://en.wikipedia.org/wiki/Basic_block) that performs an
 instruction and exits into a set of possible next states.
 
-The following algorithm can be used to compile a representation of the program:
+The following algorithm can be used to build a representation of the program:
 1. Add the initial state to a set of unexplored states.
 2. While there are unexplored states:
    1. Remove a state from the set of unexplored states.
@@ -77,15 +77,15 @@ The following algorithm can be used to compile a representation of the program:
       1. Build a basic block for the state.
       2. Add the basic block's exit states to the set of unexplored states.
 
-This reduces the entire program to a stack-based
-[control-flow graph](https://en.wikipedia.org/wiki/Control-flow_graph), which
-is much more machine-friendly, but won't give great performance immediately.
-Almost every useful instruction has one or more useless jumps between them.
-Luckily, this is fixed by the optimization stage.
+This converts the program to a
+[control-flow graph](https://en.wikipedia.org/wiki/Control-flow_graph) with
+nodes consisting of basic blocks with stack-based instructions.
+This is much easier for Fungus to analyze, but has poor performance and memory
+usage, since every command is separated by mostly useless jumps.
 
-## Optimizations
-After the program has been compiled, multiple techniques are used to improve
-runtime performance, memory usage, and analysis of `p` commands:
+## Optimizing the Graph
+After the graph has been built, multiple techniques are used to reduce its
+complexity and improve its eventual runtime performance:
 * Basic block merging - If a basic block's only entry point is an unconditional
 jump from another basic block, it can be deleted and have its instructions and
 exit appended to its predecessor.
