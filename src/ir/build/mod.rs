@@ -94,6 +94,12 @@ impl<'a> BuildContext<'a> {
             (Mode::Command, 'v') => program_counter
                 .moved_in_direction(Direction::Down, bounds)
                 .into(),
+            (Mode::Command, '_') => {
+                self.build_branch(program_counter, Direction::Left, Direction::Right)
+            }
+            (Mode::Command, '|') => {
+                self.build_branch(program_counter, Direction::Up, Direction::Down)
+            }
             (Mode::Command, '"') => program_counter
                 .with_mode(Mode::String)
                 .moved_forward(bounds)
@@ -111,6 +117,25 @@ impl<'a> BuildContext<'a> {
         }
     }
 
+    /// Builds a branch exit point from a program counter and directions.
+    fn build_branch(
+        &self,
+        program_counter: &ProgramCounter,
+        then_direction: Direction,
+        else_direction: Direction,
+    ) -> ExitPoint {
+        let bounds = self.playfield.bounds();
+
+        let then_label = program_counter
+            .moved_in_direction(then_direction, bounds)
+            .into();
+        let else_label = program_counter
+            .moved_in_direction(else_direction, bounds)
+            .into();
+
+        ExitPoint::Branch(then_label, else_label)
+    }
+
     /// Consumes the build context and returns the program.
     fn into_program(self) -> Program {
         self.program
@@ -122,6 +147,11 @@ impl ExitPoint {
     fn to_program_counters(&self) -> Vec<ProgramCounter> {
         match self {
             Self::Jump(l) => l.to_program_counter().into_iter().collect(),
+            Self::Branch(t, e) => t
+                .to_program_counter()
+                .into_iter()
+                .chain(e.to_program_counter())
+                .collect(),
             Self::End => Vec::new(),
         }
     }
