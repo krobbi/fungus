@@ -1,168 +1,96 @@
+mod cursor;
+
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::common::{
-    Playfield, ProgramCounter,
-    program_counter::{Direction, Mode},
-};
+use cursor::Cursor;
 
-use crate::ir::{Block, Exit, Label, Program};
+use crate::{
+    common::Playfield,
+    ir::{
+        Block, Exit, Label, Program, State,
+        state::{Direction, Mode},
+    },
+};
 
 /// Parses a program from a playfield.
 pub fn parse_program(playfield: &Playfield) -> Program {
-    let mut ctx = ParseContext::new(playfield, ProgramCounter::default());
+    let mut program = Program {
+        blocks: BTreeMap::new(),
+    };
 
-    while let Some(program_counter) = ctx.unvisited_program_counters.pop_first() {
-        ctx.parse_block(&program_counter);
+    let main_state = State::default();
+    program.blocks.insert(
+        Label::Main,
+        Block {
+            exit: Exit::Jump(Label::State(main_state.clone())),
+        },
+    );
+
+    let mut unexplored_states = BTreeSet::new();
+    unexplored_states.insert(main_state);
+
+    while let Some(state) = unexplored_states.pop_first() {
+        let label = Label::State(state.clone());
+        if program.blocks.contains_key(&label) {
+            continue;
+        }
+
+        let cursor = Cursor::new(playfield, state);
+        let exit = parse_exit(cursor);
+
+        for state in exit.to_states() {
+            unexplored_states.insert(state);
+        }
+
+        program.blocks.insert(label, Block { exit });
     }
 
-    ctx.into_program()
+    program
 }
 
-/// Parsing context for a program.
-struct ParseContext<'a> {
-    /// The playfield.
-    playfield: &'a Playfield,
+/// Parses an exit point from a cursor.
+fn parse_exit(cursor: Cursor) -> Exit {
+    let value = cursor.value();
+    let cursor = match (cursor.mode(), value.into_printable_ascii_char_lossy()) {
+        (Mode::Command, '>') => cursor.go(Direction::Right),
+        (Mode::Command, '<') => cursor.go(Direction::Left),
+        (Mode::Command, '^') => cursor.go(Direction::Up),
+        (Mode::Command, 'v') => cursor.go(Direction::Down),
+        (Mode::Command, '_') => return branch(cursor, Direction::Left, Direction::Right),
+        (Mode::Command, '|') => return branch(cursor, Direction::Up, Direction::Down),
+        (Mode::Command | Mode::String, '"') => cursor.toggle_mode().step(),
+        (Mode::Command, '#') => cursor.step().step(),
+        (Mode::Command, '@') => return Exit::End,
+        (Mode::Command | Mode::String, _) => cursor.step(),
+    };
 
-    /// The program.
-    program: Program,
-
-    /// Unvisited program counters for parsing blocks.
-    unvisited_program_counters: BTreeSet<ProgramCounter>,
+    cursor.into()
 }
 
-impl<'a> ParseContext<'a> {
-    /// Creates a new parsing context from a playfield and a main program counter.
-    fn new(playfield: &'a Playfield, main_program_counter: ProgramCounter) -> Self {
-        let mut ctx = Self {
-            playfield,
-            program: Program {
-                blocks: BTreeMap::new(),
-            },
-            unvisited_program_counters: BTreeSet::new(),
-        };
-
-        ctx.insert_block(
-            Label::Main,
-            Block {
-                exit: main_program_counter.into(),
-            },
-        );
-
-        ctx
-    }
-
-    /// Inserts a new block at a label.
-    fn insert_block(&mut self, label: Label, block: Block) {
-        for program_counter in block.exit.to_program_counters() {
-            self.unvisited_program_counters.insert(program_counter);
-        }
-
-        self.program.blocks.insert(label, block);
-    }
-
-    /// Parses a block at a program counter.
-    fn parse_block(&mut self, program_counter: &ProgramCounter) {
-        let label = program_counter.clone().into();
-
-        if self.program.blocks.contains_key(&label) {
-            return;
-        }
-
-        let exit = self.parse_exit(program_counter);
-        self.insert_block(label, Block { exit });
-    }
-
-    /// Parses an exit from a program counter.
-    fn parse_exit(&self, program_counter: &ProgramCounter) -> Exit {
-        let command = self
-            .playfield
-            .get(program_counter.position())
-            .expect("program counter should be bound to playfield")
-            .into_printable_ascii_char_lossy();
-        let bounds = self.playfield.bounds();
-
-        match (program_counter.mode(), command) {
-            (Mode::Command, '>') => program_counter
-                .moved_in_direction(Direction::Right, bounds)
-                .into(),
-            (Mode::Command, '<') => program_counter
-                .moved_in_direction(Direction::Left, bounds)
-                .into(),
-            (Mode::Command, '^') => program_counter
-                .moved_in_direction(Direction::Up, bounds)
-                .into(),
-            (Mode::Command, 'v') => program_counter
-                .moved_in_direction(Direction::Down, bounds)
-                .into(),
-            (Mode::Command, '_') => {
-                self.create_branch(program_counter, Direction::Left, Direction::Right)
-            }
-            (Mode::Command, '|') => {
-                self.create_branch(program_counter, Direction::Up, Direction::Down)
-            }
-            (Mode::Command, '"') => program_counter
-                .with_mode(Mode::String)
-                .moved_forward(bounds)
-                .into(),
-            (Mode::Command, '#') => program_counter
-                .moved_forward(bounds)
-                .moved_forward(bounds)
-                .into(),
-            (Mode::Command, '@') => Exit::End,
-            (Mode::String, '"') => program_counter
-                .with_mode(Mode::Command)
-                .moved_forward(bounds)
-                .into(),
-            (Mode::Command | Mode::String, _) => program_counter.moved_forward(bounds).into(),
-        }
-    }
-
-    /// Creates a branch exit from a program counter and directions.
-    fn create_branch(
-        &self,
-        program_counter: &ProgramCounter,
-        then_direction: Direction,
-        else_direction: Direction,
-    ) -> Exit {
-        let bounds = self.playfield.bounds();
-
-        let then_label = program_counter
-            .moved_in_direction(then_direction, bounds)
-            .into();
-        let else_label = program_counter
-            .moved_in_direction(else_direction, bounds)
-            .into();
-
-        Exit::Branch(then_label, else_label)
-    }
-
-    /// Consumes the parse context and returns the program.
-    fn into_program(self) -> Program {
-        self.program
-    }
+/// Creates a branch exit from a cursor and directions.
+fn branch(cursor: Cursor, then_direction: Direction, else_direction: Direction) -> Exit {
+    let then_label = cursor.clone().go(then_direction).into();
+    let else_label = cursor.go(else_direction).into();
+    Exit::Branch(then_label, else_label)
 }
 
 impl Exit {
-    /// Converts the exit to a vector of program counters.
-    fn to_program_counters(&self) -> Vec<ProgramCounter> {
+    /// Converts the exit to a vector of states.
+    fn to_states(&self) -> Vec<State> {
         match self {
-            Self::Jump(l) => l.to_program_counter().into_iter().collect(),
-            Self::Branch(t, e) => t
-                .to_program_counter()
-                .into_iter()
-                .chain(e.to_program_counter())
-                .collect(),
+            Self::Jump(l) => l.to_state().into_iter().collect(),
+            Self::Branch(t, e) => t.to_state().into_iter().chain(e.to_state()).collect(),
             Self::End => Vec::new(),
         }
     }
 }
 
 impl Label {
-    /// Converts the label to an optional program counter.
-    fn to_program_counter(&self) -> Option<ProgramCounter> {
+    /// Converts the label to an optional state.
+    fn to_state(&self) -> Option<State> {
         match self {
             Self::Main => None,
-            Self::ProgramCounter(p) => Some(p.clone()),
+            Self::State(s) => Some(s.clone()),
         }
     }
 }

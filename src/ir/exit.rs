@@ -1,7 +1,5 @@
 use std::fmt::{self, Display, Formatter};
 
-use crate::common::ProgramCounter;
-
 use super::Label;
 
 /// A block's exit.
@@ -14,12 +12,6 @@ pub enum Exit {
 
     /// A program ending.
     End,
-}
-
-impl From<ProgramCounter> for Exit {
-    fn from(value: ProgramCounter) -> Self {
-        Self::Jump(value.into())
-    }
 }
 
 impl Display for Exit {

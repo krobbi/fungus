@@ -21,6 +21,7 @@ impl Playfield {
 
         let width = lines.clone().fold(1, |a, l| l.chars().count().max(a));
         let height = lines.clone().count().max(1);
+        assert!(width > 0 && height > 0);
 
         let mut cells = vec![' '.into(); width * height];
         for row in cells.chunks_exact_mut(width) {
@@ -44,9 +45,7 @@ impl Playfield {
 
     /// Returns the value at a position in cells. Returns `None` if the position
     /// is out of bounds.
-    pub fn get(&self, position: (usize, usize)) -> Option<Value> {
-        let (x, y) = position;
-
+    pub fn get(&self, x: usize, y: usize) -> Option<Value> {
         if x < self.width {
             self.cells.get(x + y * self.width).copied()
         } else {

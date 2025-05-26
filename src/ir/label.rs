@@ -1,6 +1,6 @@
 use std::fmt::{self, Display, Formatter};
 
-use crate::common::ProgramCounter;
+use super::State;
 
 /// A label referencing a block.
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
@@ -8,21 +8,15 @@ pub enum Label {
     /// A label for the main entry point block.
     Main,
 
-    /// A label for a block built at a program counter.
-    ProgramCounter(ProgramCounter),
-}
-
-impl From<ProgramCounter> for Label {
-    fn from(value: ProgramCounter) -> Self {
-        Self::ProgramCounter(value)
-    }
+    /// A label for a block built at a state.
+    State(State),
 }
 
 impl Display for Label {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Main => f.write_str("main"),
-            Self::ProgramCounter(p) => p.fmt(f),
+            Self::State(s) => s.fmt(f),
         }
     }
 }
