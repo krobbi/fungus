@@ -71,13 +71,13 @@ characters, with a minimum of 1.
 Tabs are counted as a single character, so they should not be used for aligning
 Befunge code.
 
-The playfield is filled with zeroes. The lines of source code are converted
-from characters to integers and superimposed over the playfield. This results
-in lines that are shorter than the longest line being padded with zeroes
-(equivalent to null characters in the source code.)
+The playfield is filled with `32` (the space character as an integer.) The
+lines of source code are converted from characters to integers and superimposed
+over the playfield. This results in lines that are shorter than the longest
+line being padded with spaces.
 
-If the source code is empty, then the playfield will be a 1x1 grid containing
-zero.
+The playfield should always be a rectangle and should always have a size of at
+least 1x1.
 
 # Parsing Stage
 The program could easily be interpreted using only the playfield, but a lot can
