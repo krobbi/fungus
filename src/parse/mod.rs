@@ -5,9 +5,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use cursor::Cursor;
 
 use crate::{
+    ast::{BinOp, Expr},
     common::Playfield,
     ir::{
-        BinOp, Block, Exit, Expr, Instruction, Label, Program, State,
+        Block, Exit, Instruction, Label, Program, State,
         state::{Direction, Mode},
     },
 };

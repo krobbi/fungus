@@ -1,6 +1,6 @@
 use std::fmt::{self, Display, Formatter};
 
-use super::{BinOp, Expr};
+use crate::ast::{BinOp, Expr};
 
 /// An instruction in a block.
 pub enum Instruction {
