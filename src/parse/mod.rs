@@ -7,7 +7,7 @@ use cursor::Cursor;
 use crate::{
     common::Playfield,
     ir::{
-        Block, Exit, Expr, Instruction, Label, Program, State,
+        BinOp, Block, Exit, Expr, Instruction, Label, Program, State,
         state::{Direction, Mode},
     },
 };
@@ -60,6 +60,12 @@ fn parse_block(cursor: Cursor) -> Block {
         (Mode::Command, '7') => Instruction::Push(Expr::Literal(7.into())).into_block(cursor),
         (Mode::Command, '8') => Instruction::Push(Expr::Literal(8.into())).into_block(cursor),
         (Mode::Command, '9') => Instruction::Push(Expr::Literal(9.into())).into_block(cursor),
+        (Mode::Command, '+') => Instruction::Binary(BinOp::Add).into_block(cursor),
+        (Mode::Command, '-') => Instruction::Binary(BinOp::Subtract).into_block(cursor),
+        (Mode::Command, '*') => Instruction::Binary(BinOp::Multiply).into_block(cursor),
+        (Mode::Command, '/') => Instruction::Binary(BinOp::Divide).into_block(cursor),
+        (Mode::Command, '%') => Instruction::Binary(BinOp::Modulo).into_block(cursor),
+        (Mode::Command, '`') => Instruction::Binary(BinOp::Greater).into_block(cursor),
         (Mode::Command, '>') => cursor.go(Direction::Right).into(),
         (Mode::Command, '<') => cursor.go(Direction::Left).into(),
         (Mode::Command, '^') => cursor.go(Direction::Up).into(),
