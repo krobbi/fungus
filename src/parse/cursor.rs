@@ -71,14 +71,14 @@ impl<'a> Cursor<'a> {
     }
 }
 
-impl From<Cursor<'_>> for Label {
-    fn from(value: Cursor<'_>) -> Self {
-        Label::State(value.state)
-    }
-}
-
 impl From<Cursor<'_>> for Exit {
     fn from(value: Cursor<'_>) -> Self {
         Self::Jump(value.into())
+    }
+}
+
+impl From<Cursor<'_>> for Label {
+    fn from(value: Cursor<'_>) -> Self {
+        Label::State(value.state)
     }
 }
