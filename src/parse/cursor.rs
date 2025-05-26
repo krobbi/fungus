@@ -79,6 +79,6 @@ impl From<Cursor<'_>> for Exit {
 
 impl From<Cursor<'_>> for Label {
     fn from(value: Cursor<'_>) -> Self {
-        Label::State(value.state)
+        Self::State(value.state)
     }
 }
