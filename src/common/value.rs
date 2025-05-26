@@ -6,6 +6,11 @@ pub struct Value {
 }
 
 impl Value {
+    /// Converts the value to an `i32`.
+    pub fn into_i32(self) -> i32 {
+        self.value
+    }
+
     /// Lossily converts the value to a printable ASCII character, replacing
     /// non-printable values with a space.
     pub fn into_printable_ascii_char_lossy(self) -> char {
@@ -15,6 +20,12 @@ impl Value {
                 .into(),
             _ => ' ',
         }
+    }
+}
+
+impl From<i32> for Value {
+    fn from(value: i32) -> Self {
+        Self { value }
     }
 }
 

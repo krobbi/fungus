@@ -1,7 +1,7 @@
 use crate::{
     common::{Playfield, Value},
     ir::{
-        Exit, Label, State,
+        Block, Exit, Label, State,
         state::{Direction, Mode},
     },
 };
@@ -68,6 +68,12 @@ impl<'a> Cursor<'a> {
         };
 
         self
+    }
+}
+
+impl From<Cursor<'_>> for Block {
+    fn from(value: Cursor<'_>) -> Self {
+        Exit::from(value).into_block()
     }
 }
 
