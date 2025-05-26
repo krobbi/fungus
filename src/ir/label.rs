@@ -2,13 +2,13 @@ use std::fmt::{self, Display, Formatter};
 
 use crate::common::ProgramCounter;
 
-/// A label referencing a basic block.
+/// A label referencing a block.
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub enum Label {
-    /// A label for a main entry point basic block.
+    /// A label for the main entry point block.
     Main,
 
-    /// A label for a basic block built at a program counter.
+    /// A label for a block built at a program counter.
     ProgramCounter(ProgramCounter),
 }
 

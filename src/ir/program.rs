@@ -3,21 +3,21 @@ use std::{
     fmt::{self, Display, Formatter, Write},
 };
 
-use super::{BasicBlock, Label};
+use super::{Block, Label};
 
-/// A graph of labeled basic blocks.
+/// A Befunge program represented as a graph of labeled blocks.
 pub struct Program {
-    /// The basic blocks.
-    pub basic_blocks: BTreeMap<Label, BasicBlock>,
+    /// The blocks.
+    pub blocks: BTreeMap<Label, Block>,
 }
 
 impl Display for Program {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let mut data = String::new();
-        for (label, basic_block) in &self.basic_blocks {
+        for (label, block) in &self.blocks {
             writeln!(&mut data, "{label}:")?;
 
-            for line in basic_block.to_string().lines() {
+            for line in block.to_string().lines() {
                 writeln!(&mut data, "{:8}{line}", "")?;
             }
 
