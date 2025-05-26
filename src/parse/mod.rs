@@ -56,6 +56,7 @@ fn parse_exit(cursor: Cursor) -> Exit {
         (Mode::Command, '<') => cursor.go(Direction::Left),
         (Mode::Command, '^') => cursor.go(Direction::Up),
         (Mode::Command, 'v') => cursor.go(Direction::Down),
+        (Mode::Command, '?') => return random(cursor),
         (Mode::Command, '_') => return branch(cursor, Direction::Left, Direction::Right),
         (Mode::Command, '|') => return branch(cursor, Direction::Up, Direction::Down),
         (Mode::Command | Mode::String, '"') => cursor.toggle_mode().step(),
@@ -65,6 +66,15 @@ fn parse_exit(cursor: Cursor) -> Exit {
     };
 
     cursor.into()
+}
+
+/// Creates a random exit from a cursor.
+fn random(cursor: Cursor) -> Exit {
+    let right_label = cursor.clone().go(Direction::Right).into();
+    let down_label = cursor.clone().go(Direction::Down).into();
+    let left_label = cursor.clone().go(Direction::Left).into();
+    let up_label = cursor.go(Direction::Up).into();
+    Exit::Random(right_label, down_label, left_label, up_label)
 }
 
 /// Creates a branch exit from a cursor and directions.
@@ -79,6 +89,13 @@ impl Exit {
     fn to_states(&self) -> Vec<State> {
         match self {
             Self::Jump(l) => l.to_state().into_iter().collect(),
+            Self::Random(r, d, l, u) => r
+                .to_state()
+                .into_iter()
+                .chain(d.to_state())
+                .chain(l.to_state())
+                .chain(u.to_state())
+                .collect(),
             Self::Branch(t, e) => t.to_state().into_iter().chain(e.to_state()).collect(),
             Self::End => Vec::new(),
         }
