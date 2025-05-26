@@ -2,7 +2,8 @@
 Fungus is a [Befunge](https://esolangs.org/wiki/Befunge) interpreter that
 accelerates runtime performance with a parsing and optimization stage.
 
-Fungus mostly targets the original Befunge-93 standard, with some differences:
+Fungus mostly targets the original Befunge-93 specification with some
+differences:
 * The playfield may be an arbitrary size.
 * The values stored in the playfield are signed integers and are not limited to
 being valid characters.
@@ -168,12 +169,12 @@ Fungus uses the following libraries:
 
 The following resources were helpful for implementing Fungus:
 * [Befunge Esolang Page](https://esolangs.org/wiki/Befunge)
-* [Befunge 93 Specification](https://catseye.tc/view/Befunge-93/doc/Befunge-93.markdown)
-* [Funge 98 Specification](https://catseye.tc/view/Funge-98/doc/funge98.markdown)
-\- Funge 98 is not implemented by Fungus, but this specification is more clear
-than the Befunge 93 specification.
+* [Befunge-93 Specification](https://catseye.tc/view/Befunge-93/doc/Befunge-93.markdown)
+* [Funge-98 Specification](https://catseye.tc/view/Funge-98/doc/funge98.markdown)
+\- Funge-98 is not implemented by Fungus, but it is a superset of Befunge-93
+with a more detailed specification.
 * [BedroomLan Befunge Interpreter](https://www.bedroomlan.org/tools/befunge-playground/)
-\- Not fully compliant with Befunge 93, but useful for testing.
+\- Not fully compliant with Befunge-93, but useful for testing.
 
 # License
 Fungus is released under the MIT License. See [LICENSE.txt](/LICENSE.txt) for a
