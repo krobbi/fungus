@@ -80,6 +80,8 @@ fn parse_block(cursor: Cursor) -> Block {
         (Mode::Command, '\\') => Instruction::Swap.into_block(cursor),
         (Mode::Command, '$') => Instruction::Pop.into_block(cursor),
         (Mode::Command, '#') => cursor.step().step().into(),
+        (Mode::Command, '&') => push(Expr::InputInt, cursor),
+        (Mode::Command, '~') => push(Expr::InputChar, cursor),
         (Mode::Command, '@') => Exit::End.into_block(),
         (Mode::Command, _) => cursor.step().into(),
         (Mode::String, _) => literal(value.into_i32(), cursor),
@@ -88,7 +90,7 @@ fn parse_block(cursor: Cursor) -> Block {
 
 /// Creates a new literal expression block from a value and a cursor.
 fn literal(value: i32, cursor: Cursor) -> Block {
-    Instruction::Push(Expr::Literal(value.into())).into_block(cursor)
+    push(Expr::Literal(value.into()), cursor)
 }
 
 /// Creates a new binary operation block from a binary operator and a cursor.
@@ -110,6 +112,11 @@ fn branch(cursor: Cursor, then_direction: Direction, else_direction: Direction) 
     let then_label = cursor.clone().go(then_direction).into();
     let else_label = cursor.go(else_direction).into();
     Exit::Branch(then_label, else_label).into_block()
+}
+
+/// Creates a new push block from an expression and a cursor.
+fn push(expr: Expr, cursor: Cursor) -> Block {
+    Instruction::Push(expr).into_block(cursor)
 }
 
 impl Instruction {
