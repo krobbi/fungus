@@ -8,7 +8,7 @@ use super::{BasicBlock, Label};
 /// A graph of labeled basic blocks.
 pub struct Program {
     /// The basic blocks.
-    pub(super) basic_blocks: BTreeMap<Label, BasicBlock>,
+    pub basic_blocks: BTreeMap<Label, BasicBlock>,
 }
 
 impl Display for Program {

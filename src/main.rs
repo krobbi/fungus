@@ -2,6 +2,7 @@ mod common;
 mod config;
 mod error;
 mod ir;
+mod parse;
 
 use std::{fs, path::Path, process::ExitCode};
 
@@ -22,7 +23,7 @@ fn try_run() -> Result<()> {
     let config = Config::try_new()?;
     let source = try_read_source(config.path())?;
     let playfield = Playfield::new(&source);
-    let program = ir::build_program(&playfield);
+    let program = parse::parse_program(&playfield);
     println!("{program}");
     Ok(())
 }

@@ -5,7 +5,7 @@ use super::ExitPoint;
 /// A linear sequence of instructions with a single exit point.
 pub struct BasicBlock {
     /// The exit point.
-    pub(super) exit_point: ExitPoint,
+    pub exit_point: ExitPoint,
 }
 
 impl Display for BasicBlock {

@@ -5,33 +5,33 @@ use crate::common::{
     program_counter::{Direction, Mode},
 };
 
-use super::{BasicBlock, ExitPoint, Label, Program};
+use crate::ir::{BasicBlock, ExitPoint, Label, Program};
 
-/// Builds a program from a playfield.
-pub fn build_program(playfield: &Playfield) -> Program {
-    let mut ctx = BuildContext::new(playfield, ProgramCounter::default());
+/// Parses a program from a playfield.
+pub fn parse_program(playfield: &Playfield) -> Program {
+    let mut ctx = ParseContext::new(playfield, ProgramCounter::default());
 
     while let Some(program_counter) = ctx.unvisited_program_counters.pop_first() {
-        ctx.build_basic_block(&program_counter);
+        ctx.parse_basic_block(&program_counter);
     }
 
     ctx.into_program()
 }
 
-/// Context for building a program.
-struct BuildContext<'a> {
+/// Parsing context for a program.
+struct ParseContext<'a> {
     /// The playfield.
     playfield: &'a Playfield,
 
     /// The program.
     program: Program,
 
-    /// Unvisited program counters for building basic blocks.
+    /// Unvisited program counters for parsing basic blocks.
     unvisited_program_counters: BTreeSet<ProgramCounter>,
 }
 
-impl<'a> BuildContext<'a> {
-    /// Creates a new build context from a playfield and a main program counter.
+impl<'a> ParseContext<'a> {
+    /// Creates a new parsing context from a playfield and a main program counter.
     fn new(playfield: &'a Playfield, main_program_counter: ProgramCounter) -> Self {
         let mut ctx = Self {
             playfield,
@@ -60,20 +60,20 @@ impl<'a> BuildContext<'a> {
         self.program.basic_blocks.insert(label, basic_block);
     }
 
-    /// Builds a basic block at a program counter.
-    fn build_basic_block(&mut self, program_counter: &ProgramCounter) {
+    /// Parses a basic block at a program counter.
+    fn parse_basic_block(&mut self, program_counter: &ProgramCounter) {
         let label = program_counter.clone().into();
 
         if self.program.basic_blocks.contains_key(&label) {
             return;
         }
 
-        let exit_point = self.build_exit_point(program_counter);
+        let exit_point = self.parse_exit_point(program_counter);
         self.insert_basic_block(label, BasicBlock { exit_point });
     }
 
-    /// Builds an exit point from a program counter.
-    fn build_exit_point(&self, program_counter: &ProgramCounter) -> ExitPoint {
+    /// Parses an exit point from a program counter.
+    fn parse_exit_point(&self, program_counter: &ProgramCounter) -> ExitPoint {
         let command = self
             .playfield
             .get(program_counter.position())
@@ -95,10 +95,10 @@ impl<'a> BuildContext<'a> {
                 .moved_in_direction(Direction::Down, bounds)
                 .into(),
             (Mode::Command, '_') => {
-                self.build_branch(program_counter, Direction::Left, Direction::Right)
+                self.create_branch(program_counter, Direction::Left, Direction::Right)
             }
             (Mode::Command, '|') => {
-                self.build_branch(program_counter, Direction::Up, Direction::Down)
+                self.create_branch(program_counter, Direction::Up, Direction::Down)
             }
             (Mode::Command, '"') => program_counter
                 .with_mode(Mode::String)
@@ -117,8 +117,8 @@ impl<'a> BuildContext<'a> {
         }
     }
 
-    /// Builds a branch exit point from a program counter and directions.
-    fn build_branch(
+    /// Creates a branch exit point from a program counter and directions.
+    fn create_branch(
         &self,
         program_counter: &ProgramCounter,
         then_direction: Direction,
@@ -136,7 +136,7 @@ impl<'a> BuildContext<'a> {
         ExitPoint::Branch(then_label, else_label)
     }
 
-    /// Consumes the build context and returns the program.
+    /// Consumes the parse context and returns the program.
     fn into_program(self) -> Program {
         self.program
     }
