@@ -169,7 +169,7 @@ Fungus uses the following libraries:
 The following resources were helpful for implementing Fungus:
 * [Befunge Esolang Page](https://esolangs.org/wiki/Befunge)
 * [Befunge 93 Specification](https://catseye.tc/view/Befunge-93/doc/Befunge-93.markdown)
-* [Funge 98 Specification](https://codeberg.org/catseye/Funge-98/src/branch/master/doc/funge98.markdown)
+* [Funge 98 Specification](https://catseye.tc/view/Funge-98/doc/funge98.markdown)
 \- Funge 98 is not implemented by Fungus, but this specification is more clear
 than the Befunge 93 specification.
 * [BedroomLan Befunge Interpreter](https://www.bedroomlan.org/tools/befunge-playground/)
