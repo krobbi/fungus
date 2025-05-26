@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use cursor::Cursor;
 
 use crate::{
-    ast::{BinOp, Expr},
+    ast::{BinOp, Expr, UnOp},
     common::Playfield,
     ir::{
         Block, Exit, Instruction, Label, Program, State,
@@ -66,6 +66,7 @@ fn parse_block(cursor: Cursor) -> Block {
         (Mode::Command, '*') => binary(BinOp::Multiply, cursor),
         (Mode::Command, '/') => binary(BinOp::Divide, cursor),
         (Mode::Command, '%') => binary(BinOp::Modulo, cursor),
+        (Mode::Command, '!') => Instruction::Unary(UnOp::Not).into_block(cursor),
         (Mode::Command, '`') => binary(BinOp::Greater, cursor),
         (Mode::Command, '>') => cursor.go(Direction::Right).into(),
         (Mode::Command, '<') => cursor.go(Direction::Left).into(),
