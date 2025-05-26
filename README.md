@@ -1,15 +1,13 @@
 # Fungus
-**Fungus is being rewritten. This document may not be accurate.**
-
 Fungus is a [Befunge](https://esolangs.org/wiki/Befunge) interpreter that
-accelerates runtime with an initial building and optimization stage.
+accelerates runtime performance with a parsing and optimization stage.
 
 Fungus mostly targets the original Befunge-93 standard, with some differences:
 * The playfield may be an arbitrary size.
-* Characters are represented as Unicode code points, not ASCII bytes.
-* Potentially self-modifying code is not allowed.
-* To simplify the optimizer, using a command without enough parameters on the
-stack is considered undefined behavior. No error will be reported for this.
+* The values stored in the playfield are signed integers and are not limited to
+being valid characters.
+* Characters are represented as Unicode scalar values, not ASCII characters.
+<!--* Potentially self-modifying code is not allowed.-->
 
 # Usage
 Fungus is run from the command line:
@@ -36,11 +34,9 @@ The source file at `<PATH>` must be formatted as UTF-8.
 If the `--help` or `--version` flag is set, then Fungus will print information
 but not perform any action.
 
-# Technical Details
-Representing a Befunge program's behavior in a data structure can be
-challenging because Befunge is an esoteric programming language that is
-intentionally designed to be difficult to compile.
-
+# About Befunge
+Befunge is an esoteric programming language that is intentionally designed to
+be difficult to compile:
 ```befunge
 <v"Hello, world!"+910
  >:#,_@
@@ -62,29 +58,59 @@ to the stack until it exits string mode.
 Other commands are available for math, logic, stack manipulation, input, and
 output.
 
-## Building a Graph
-Despite its complexity, the program counter has a representable state
-(position, direction, and mode), and always starts in the same state. Given a
-state and a playfield, it is possible to build a
-[basic block](https://en.wikipedia.org/wiki/Basic_block) that performs an
-instruction and exits into a set of possible next states.
+# Playfield Stage
+The first stage of Fungus is to take the one-dimensional string of source code
+characters and convert it to a rectangular grid of integers that can be looked
+up by 2D coordinates (the 'playfield'.)
 
-The following algorithm can be used to build a representation of the program:
-1. Add the initial state to a set of unvisited states.
+The source code is split into lines, with trailing empty lines ignored. The
+height of the playfield in cells is the number of lines, with a minimum of 1.
+The width of the playfield in cells is the length of the longest line in
+characters, with a minimum of 1.
+
+Tabs are counted as a single character, so they should not be used for aligning
+Befunge code.
+
+The playfield is filled with zeroes. The lines of source code are converted
+from characters to integers and superimposed over the playfield. This results
+in lines that are shorter than the longest line being padded with zeroes
+(equivalent to null characters in the source code.)
+
+If the source code is empty, then the playfield will be a 1x1 grid containing
+zero.
+
+# Parsing Stage
+The program could easily be interpreted using only the playfield, but a lot can
+be done to improve performance. To enable these optimizations, the playfield is
+parsed into a more conventional
+[control-flow graph](https://en.wikipedia.org/wiki/Control-flow_graph).
+
+Parsing a Befunge program is similar to interpreting it. The program counter
+starts in a known state
+(in the top-left corner, facing right, in command mode.) The program counter is
+followed, and an action is performed based on its mode and the command it
+points to. Instead of executing commands,
+[basic blocks](https://en.wikipedia.org/wiki/Basic_block) are created that
+contain instructions and an exit point that may lead to more program counter
+states. When conditional branches are encountered, all possible branches are
+followed. States that have already been parsed do not need to be parsed again.
+
+The following algorithm is used for parsing the program:
+1. Add the initial program counter state to a set of unvisited states.
 2. While there are unvisited states:
    1. Remove a state from the set of unvisited states.
    2. If there is no basic block for the removed state:
-      1. Build a basic block for the state.
+      1. Parse a basic block for the state.
       2. Add the basic block's exit states to the set of unvisited states.
 
-This converts the program to a
-[control-flow graph](https://en.wikipedia.org/wiki/Control-flow_graph) with
-nodes consisting of basic blocks with stack-based instructions.
-This is much easier for Fungus to analyze, but has poor performance and memory
-usage, since every command is separated by mostly useless jumps.
+The resulting graph is much easier for Fungus to analyze, but has poor
+runtime performance and memory usage, since every command is separated by
+mostly useless jumps. This issue will be addressed in an optimization stage.
+<!-- TODO: Change previous sentence to present tense. -->
 
-## Optimizing the Graph
-After the graph has been built, multiple techniques are used to reduce its
+<!--
+# Optimization Stage
+After the graph has been parsed, multiple techniques are used to reduce its
 complexity and improve its eventual runtime performance:
 * Basic block merging - If a basic block's only entry point is an unconditional
 jump from another basic block, it can be deleted and have its instructions and
@@ -111,7 +137,7 @@ are run in a loop until no more changes can be made.
 It is important that these optimizations never change any of the program's
 defined behaviors.
 
-## The Hard Part
+# The Hard Part
 Compiling a program hits a roadblock when it comes to the nasty `g` command,
 and the even nastier `p` command. These commands get and put characters to and
 from the playfield. This means that Befunge programs can not only read their
@@ -134,10 +160,20 @@ so an error for self-modifying code is thrown instead.
 
 This analysis depends on the optimization stage, so it should be a separate
 stage after optimization.
+-->
 
-# Dependencies
+# Credits
 Fungus uses the following libraries:
 * [clap](https://crates.io/crates/clap) - Command line argument parsing.
+
+The following resources were helpful for implementing Fungus:
+* [Befunge Esolang Page](https://esolangs.org/wiki/Befunge)
+* [Befunge 93 Specification](https://catseye.tc/view/Befunge-93/doc/Befunge-93.markdown)
+* [Funge 98 Specification](https://codeberg.org/catseye/Funge-98/src/branch/master/doc/funge98.markdown)
+\- Funge 98 is not implemented by Fungus, but this specification is more clear
+than the Befunge 93 specification.
+* [BedroomLan Befunge Interpreter](https://www.bedroomlan.org/tools/befunge-playground/)
+\- Not fully compliant with Befunge 93, but useful for testing.
 
 # License
 Fungus is released under the MIT License. See [LICENSE.txt](/LICENSE.txt) for a
