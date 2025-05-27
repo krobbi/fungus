@@ -21,15 +21,20 @@ fn main() -> ExitCode {
 
 /// Runs Fungus.
 fn try_run() -> Result<()> {
-    let config = Config::try_new()?;
-    let source = try_read_source(config.path())?;
-    let playfield = Playfield::new(&source);
+    let playfield = try_load_playfield()?;
     let program = parse::parse_program(&playfield);
     println!("{program}");
     Ok(())
 }
 
-/// Reads source code from the source file's path.
+/// Loads a playfield from command line arguments.
+fn try_load_playfield() -> Result<Playfield> {
+    let config = Config::try_new()?;
+    let source = try_read_source(config.path())?;
+    Ok(Playfield::new(&source))
+}
+
+/// Reads source code from a file path.
 fn try_read_source(path: &Path) -> Result<String> {
     if path.is_file() {
         fs::read_to_string(path).map_err(Error::CouldNotReadSourceFile)
