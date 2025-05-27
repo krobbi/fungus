@@ -11,15 +11,9 @@ impl Value {
         self.value
     }
 
-    /// Lossily converts the value to a printable ASCII character, replacing
-    /// non-printable values with a space.
-    pub fn into_printable_ascii_char_lossy(self) -> char {
-        match self.value {
-            v @ 0x20..=0x7e => u8::try_from(v)
-                .expect("the range of `u8` should contain `v`")
-                .into(),
-            _ => ' ',
-        }
+    /// Lossily converts the value to a `char`.
+    pub fn into_char_lossy(self) -> char {
+        char::from_u32(0u32.wrapping_add_signed(self.value)).unwrap_or(char::REPLACEMENT_CHARACTER)
     }
 }
 

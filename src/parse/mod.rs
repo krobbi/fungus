@@ -50,7 +50,7 @@ pub fn parse_program(playfield: &Playfield) -> Program {
 /// Parses a block from a cursor.
 fn parse_block(cursor: Cursor) -> Block {
     let value = cursor.value();
-    match (cursor.mode(), value.into_printable_ascii_char_lossy()) {
+    match (cursor.mode(), value.into_char_lossy()) {
         (Mode::Command, '0') => literal(0, cursor),
         (Mode::Command, '1') => literal(1, cursor),
         (Mode::Command, '2') => literal(2, cursor),
