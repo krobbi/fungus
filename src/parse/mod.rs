@@ -82,6 +82,8 @@ fn parse_block(cursor: Cursor) -> Block {
         (Mode::Command, '.') => Instruction::OutputInt.into_block(cursor),
         (Mode::Command, ',') => Instruction::OutputChar.into_block(cursor),
         (Mode::Command, '#') => cursor.step().step().into(),
+        (Mode::Command, 'g') => Instruction::Get.into_block(cursor),
+        (Mode::Command, 'p') => Instruction::Put.into_block(cursor),
         (Mode::Command, '&') => push(Expr::InputInt, cursor),
         (Mode::Command, '~') => push(Expr::InputChar, cursor),
         (Mode::Command, '@') => Exit::End.into_block(),

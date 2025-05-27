@@ -35,19 +35,31 @@ pub enum Instruction {
     /// An instruction to pop a value and output it as a character.
     /// `[...][char]` -> `[...]`
     OutputChar,
+
+    /// An instruction to get a value from the playfield at a position.
+    /// `[...][x][y]` -> `[...][value]`
+    Get,
+
+    /// An instruction to put a value to the playfield at a position.
+    /// `[...][value][x][y]` -> `[...]`
+    Put,
 }
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Push(e) => write!(f, "{:8}{e}", "push"),
-            Self::Binary(o) => write!(f, "{:8}{o}", "binary"),
-            Self::Unary(o) => write!(f, "{:8}{o}", "unary"),
-            Self::Duplicate => f.write_str("dup"),
-            Self::Swap => f.write_str("swap"),
-            Self::Pop => f.write_str("pop"),
-            Self::OutputInt => f.write_str("outint"),
-            Self::OutputChar => f.write_str("outchar"),
-        }
+        let data = match self {
+            Self::Push(e) => return write!(f, "{:8}{e}", "push"),
+            Self::Binary(o) => return write!(f, "{:8}{o}", "binary"),
+            Self::Unary(o) => return write!(f, "{:8}{o}", "unary"),
+            Self::Duplicate => "dup",
+            Self::Swap => "swap",
+            Self::Pop => "pop",
+            Self::OutputInt => "outint",
+            Self::OutputChar => "outchar",
+            Self::Get => "get",
+            Self::Put => "put",
+        };
+
+        f.write_str(data)
     }
 }
