@@ -73,8 +73,8 @@ fn parse_block(cursor: Cursor) -> Block {
         (Mode::Command, '^') => cursor.go(Direction::Up).into(),
         (Mode::Command, 'v') => cursor.go(Direction::Down).into(),
         (Mode::Command, '?') => random(cursor),
-        (Mode::Command, '_') => branch(cursor, Direction::Left, Direction::Right),
-        (Mode::Command, '|') => branch(cursor, Direction::Up, Direction::Down),
+        (Mode::Command, '_') => branch(Direction::Left, Direction::Right, cursor),
+        (Mode::Command, '|') => branch(Direction::Up, Direction::Down, cursor),
         (Mode::Command | Mode::String, '"') => cursor.toggle_mode().step().into(),
         (Mode::Command, ':') => Instruction::Duplicate.into_block(cursor),
         (Mode::Command, '\\') => Instruction::Swap.into_block(cursor),
@@ -107,8 +107,8 @@ fn random(cursor: Cursor) -> Block {
     Exit::Random(right_label, down_label, left_label, up_label).into_block()
 }
 
-/// Creates a new branch block from a cursor and directions.
-fn branch(cursor: Cursor, then_direction: Direction, else_direction: Direction) -> Block {
+/// Creates a new branch block from directions and a cursor.
+fn branch(then_direction: Direction, else_direction: Direction, cursor: Cursor) -> Block {
     let then_label = cursor.clone().go(then_direction).into();
     let else_label = cursor.go(else_direction).into();
     Exit::Branch(then_label, else_label).into_block()
