@@ -8,7 +8,6 @@ differences:
 * The values stored in the playfield are signed integers and are not limited to
 being valid characters.
 * Characters are represented as Unicode scalar values, not ASCII characters.
-<!--* Potentially self-modifying code is not allowed.-->
 
 # Usage
 Fungus is run from the command line:
@@ -16,7 +15,7 @@ Fungus is run from the command line:
 fungus <PATH>
 ```
 
-Fungus will load the Befunge source file at `<PATH>` and interpret it as a
+The source source file at `<PATH>` will be loaded and interpreted as a Befunge
 program.
 
 ## Arguments
@@ -59,10 +58,14 @@ to the stack until it exits string mode.
 Other commands are available for math, logic, stack manipulation, input, and
 output.
 
-# Playfield Stage
-The first stage of Fungus is to take the one-dimensional string of source code
-characters and convert it to a rectangular grid of integers that can be looked
-up by 2D coordinates (the 'playfield'.)
+# Preprocessing Stages
+Fungus processes Befunge programs in multiple stages before they are
+interpreted:
+
+## Playfield Stage
+The first stage is to take the one-dimensional string of source code characters
+and convert it to a rectangular grid of integers that can be looked up by 2D
+coordinates (the 'playfield'.)
 
 The source code is split into lines, with trailing empty lines ignored. The
 height of the playfield in cells is the number of lines, with a minimum of 1.
@@ -80,7 +83,7 @@ line being padded with spaces.
 The playfield should always be a rectangle and should always have a size of at
 least 1x1.
 
-# Parsing Stage
+## Parsing Stage
 The program could easily be interpreted using only the playfield, but a lot can
 be done to improve performance. To enable these optimizations, the playfield is
 parsed into a more conventional
@@ -104,15 +107,22 @@ The following algorithm is used for parsing the program:
       1. Parse a basic block for the state.
       2. Add the basic block's exit states to the set of unvisited states.
 
-The resulting graph is much easier for Fungus to analyze, but has poor
+The resulting graph is much easier to analyze and interpret, but has poor
 runtime performance and memory usage, since every command is separated by
-mostly useless jumps. This issue will be addressed in an optimization stage.
-<!-- TODO: Change previous sentence to present tense. -->
+mostly useless jumps. This issue is addressed in the optimization stage.
+
+## Optimization Stage
+After a program has been parsed, multiple optimization algorithms can be
+applied to it to reduce its complexity and improve its eventual runtime
+performance.
+<!-- TODO: Change to "multiple optimization algorithms are applied." -->
+
+Optimization steps will not produce optimal results on their own, but their
+effects may unblock other steps from having an effect. To take advantage of
+this, every optimization step is run in a loop until no changes can be made.
+<!-- TODO: Add subsections for algorithms below as they are implemented. -->
 
 <!--
-# Optimization Stage
-After the graph has been parsed, multiple techniques are used to reduce its
-complexity and improve its eventual runtime performance:
 * Basic block merging - If a basic block's only entry point is an unconditional
 jump from another basic block, it can be deleted and have its instructions and
 exit appended to its predecessor.
@@ -130,14 +140,9 @@ jump's target.
 * [Dead code elimination](https://en.wikipedia.org/wiki/Dead_code_elimination)
 \- Starting at the main entry point. Any basic blocks that are not reachable
 are deleted.
+-->
 
-An optimization may not produce ideal results immediately, but may help with
-other optimizations. To produce a highly optimized program, the optimizations
-are run in a loop until no more changes can be made.
-
-It is important that these optimizations never change any of the program's
-defined behaviors.
-
+<!--
 # The Hard Part
 Compiling a program hits a roadblock when it comes to the nasty `g` command,
 and the even nastier `p` command. These commands get and put characters to and

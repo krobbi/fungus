@@ -3,6 +3,7 @@ mod common;
 mod config;
 mod error;
 mod ir;
+mod optimize;
 mod parse;
 
 use std::{fs, path::Path, process::ExitCode};
@@ -22,7 +23,8 @@ fn main() -> ExitCode {
 /// Runs Fungus.
 fn try_run() -> Result<()> {
     let playfield = try_load_playfield()?;
-    let program = parse::parse_program(&playfield);
+    let mut program = parse::parse_program(&playfield);
+    optimize::optimize_program(&mut program);
     println!("{program}");
     Ok(())
 }
