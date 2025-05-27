@@ -34,7 +34,7 @@ impl<'a> Cursor<'a> {
     pub fn value(&self) -> Value {
         self.playfield
             .get(self.state.x, self.state.y)
-            .expect("cursor should be bound to playfield")
+            .expect("the constructor should check that the cursor is in bounds of the playfield")
     }
 
     /// Moves the cursor forward by one cell.

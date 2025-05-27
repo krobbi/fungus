@@ -32,7 +32,7 @@ impl From<i32> for Value {
 impl From<char> for Value {
     fn from(value: char) -> Self {
         let value = i32::try_from(u32::from(value))
-            .expect("the range of `i32` should contain the range of `char`");
+            .expect("a `char` only has 21 significant bits, so an `i32` should always contain it");
         Self { value }
     }
 }
