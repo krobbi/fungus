@@ -4,15 +4,15 @@ use crate::ast::{BinOp, Expr, UnOp};
 
 /// An instruction in a block.
 pub enum Instruction {
-    /// An instruction to push an expression to the stack.
+    /// An instruction to push an expression.
     /// `[...]` -> `[...][expr]`
     Push(Expr),
 
-    /// An instruction to apply a binary operation to the stack.
+    /// An instruction to apply a binary operation.
     /// `[...][lhs][rhs]` -> `[...][lhs op rhs]`
     Binary(BinOp),
 
-    /// An instruction to apply a unary operation to the stack.
+    /// An instruction to apply a unary operation.
     /// `[...][rhs]` -> `[...][op rhs]`
     Unary(UnOp),
 
@@ -24,9 +24,17 @@ pub enum Instruction {
     /// `[...][under][top]` -> `[...][top][under]`
     Swap,
 
-    /// An instruction to pop the top value from the stack.
-    /// `[...][value]` -> `[...]`
+    /// An instruction to pop a value and discard it.
+    /// `[...][dropped]` -> `[...]`
     Pop,
+
+    /// An instruction to pop a value and output it as an integer.
+    /// `[...][int]` -> `[...]`
+    OutputInt,
+
+    /// An instruction to pop a value and output it as a character.
+    /// `[...][char]` -> `[...]`
+    OutputChar,
 }
 
 impl Display for Instruction {
@@ -38,6 +46,8 @@ impl Display for Instruction {
             Self::Duplicate => f.write_str("dup"),
             Self::Swap => f.write_str("swap"),
             Self::Pop => f.write_str("pop"),
+            Self::OutputInt => f.write_str("outint"),
+            Self::OutputChar => f.write_str("outchar"),
         }
     }
 }
