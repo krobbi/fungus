@@ -1,5 +1,3 @@
-use std::fmt::{self, Display, Formatter};
-
 use super::Value;
 
 /// A Befunge playfield.
@@ -51,19 +49,5 @@ impl Playfield {
         } else {
             None
         }
-    }
-}
-
-impl Display for Playfield {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let mut data = String::with_capacity((self.width + 1) * self.height);
-        for row in self.cells.chunks_exact(self.width) {
-            for &value in row {
-                data.push(value.into_printable_ascii_char_lossy());
-            }
-            data.push('\n');
-        }
-
-        f.write_str(data.trim_end())
     }
 }
