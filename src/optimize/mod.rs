@@ -1,4 +1,5 @@
 mod context;
+mod step;
 
 use context::OptimizationContext;
 
@@ -14,6 +15,6 @@ pub fn optimize_program(program: &mut Program) {
 }
 
 /// Runs an optimization pass.
-fn run_pass(_ctx: &mut OptimizationContext) {
-    println!("TODO: Implement optimizations.");
+fn run_pass(ctx: &mut OptimizationContext) {
+    step::merge_blocks(ctx);
 }

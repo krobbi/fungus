@@ -6,7 +6,7 @@ Fungus mostly targets the original Befunge-93 specification with some
 differences:
 * The playfield may be an arbitrary size.
 * The values stored in the playfield are signed integers and are not limited to
-being valid characters.
+  being valid characters.
 * Characters are represented as Unicode scalar values, not ASCII characters.
 
 # Usage
@@ -112,20 +112,37 @@ runtime performance and memory usage, since every command is separated by
 mostly useless jumps. This issue is addressed in the optimization stage.
 
 ## Optimization Stage
-After a program has been parsed, multiple optimization algorithms can be
-applied to it to reduce its complexity and improve its eventual runtime
-performance.
-<!-- TODO: Change to "multiple optimization algorithms are applied." -->
+After a program has been parsed, multiple optimization algorithms are applied
+to reduce its complexity and improve its eventual runtime performance.
 
 Optimization steps will not produce optimal results on their own, but their
-effects may unblock other steps from having an effect. To take advantage of
+effects may allow other steps to have a better effect. To take advantage of
 this, every optimization step is run in a loop until no changes can be made.
-<!-- TODO: Add subsections for algorithms below as they are implemented. -->
+
+### Basic Block Merging
+Basic blocks with a single entry point from an unconditional jump can be merged
+into their predecessor. This involves deleting the basic block and appending
+its instructions and exit to the predecessor.
+
+This significantly reduces the number of basic blocks and groups instructions
+together, making the program smaller and easier to analyze. Because of this,
+the basic block merging step is run first.
+
+The following algorithm performs basic block merging on the first eligable
+predecessor:
+1. For each basic block in the program (the predecessor:)
+   1. If the exit point is not an unconditional jump to a different successor:
+      1. Skip this predecessor and continue to the next one.
+   2. If the successor has any other predecessors:
+      1. Skip this predecessor and continue to the next one.
+   3. Remove the successor.
+   4. Append the successor's instructions to the predecessor's instructions.
+   5. Replace the predecessor's exit point with the successor's exit point.
+   6. Break out of the loop.
+
+The optimizer repeats this step until no more basic blocks can be merged.
 
 <!--
-* Basic block merging - If a basic block's only entry point is an unconditional
-jump from another basic block, it can be deleted and have its instructions and
-exit appended to its predecessor.
 * [Peephole optimization](https://en.wikipedia.org/wiki/Peephole_optimization)
 \- Small windows of instructions (currently 2 or 3) are matched against
 patterns to be replaced with more optimal instructions that produce the same
@@ -176,10 +193,10 @@ The following resources were helpful for implementing Fungus:
 * [Befunge Esolang Page](https://esolangs.org/wiki/Befunge)
 * [Befunge-93 Specification](https://catseye.tc/view/Befunge-93/doc/Befunge-93.markdown)
 * [Funge-98 Specification](https://catseye.tc/view/Funge-98/doc/funge98.markdown)
-\- Funge-98 is not implemented by Fungus, but it is a superset of Befunge-93
-with a more detailed specification.
+  \- Funge-98 is not implemented by Fungus, but it is a superset of Befunge-93
+  with a more detailed specification.
 * [BedroomLan Befunge Interpreter](https://www.bedroomlan.org/tools/befunge-playground/)
-\- Not fully compliant with Befunge-93, but useful for testing.
+  \- Not fully compliant with Befunge-93, but useful for testing.
 
 # License
 Fungus is released under the MIT License. See [LICENSE.txt](/LICENSE.txt) for a

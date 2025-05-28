@@ -3,7 +3,7 @@ use std::fmt::{self, Display, Formatter};
 use super::State;
 
 /// A label referencing a block.
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Label {
     /// A label for the main entry point block.
     Main,
