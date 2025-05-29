@@ -87,7 +87,7 @@ least 1x1.
 The program could easily be interpreted using only the playfield, but a lot can
 be done to improve performance. To enable these optimizations, the playfield is
 parsed into a more conventional
-[control-flow graph](https://en.wikipedia.org/wiki/Control-flow_graph).
+[control flow graph](https://en.wikipedia.org/wiki/Control-flow_graph).
 
 Parsing a Befunge program is similar to interpreting it. The program counter
 starts in a known state
@@ -149,6 +149,47 @@ more optimal equivalents. Peephole optimization is effective for miscellaneous
 'cleanup' tasks that don't require much analysis.
 
 The optimizer uses pattern matching to detect various optimization cases:
+
+#### Expression Building
+The control flow graph parsed by Fungus represents expressions with
+[abstract syntax trees](https://en.wikipedia.org/wiki/Abstract_syntax_tree).
+Because Befunge is so low-level, 'decompiling' it to a higher level can make it
+easier to analyze in some cases. Push instructions followed by operator
+instructions can be replaced with a single instruction that pushes an AST.
+
+This doesn't affect runtime performance, but it reduces the workload for other
+optimizations and enables constant folding at a more sophisticated level than
+can be achieved with peephole optimization.
+
+##### Example
+This Befunge snippet prints `1` if an inputted integer is less than or equal to
+`100`, and otherwise prints `0`:
+```
+&55*4*`!.@
+```
+
+This may generate the following code:
+```
+main:
+        push    input_int()
+        push    5
+        push    5
+        binary  *
+        push    4
+        binary  *
+        binary  >
+        unary   !
+        outint
+        end
+```
+
+Expression building would optimize it to the following:
+```
+main:
+        push    !(input_int() > ((5 * 5) * 4))
+        outint
+        end
+```
 
 #### Duplicate and Swap
 Duplicate and swap `:\` can be replaced with duplicate `:`. Duplicating the top

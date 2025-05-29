@@ -1,4 +1,5 @@
 use crate::{
+    ast::Expr,
     ir::Instruction,
     optimize::{context::Context, graph::Graph},
 };
@@ -7,6 +8,7 @@ use crate::{
 /// equivalents.
 pub fn replace_instructions(graph: &mut Graph, ctx: &mut Context) {
     for block in graph.blocks_mut() {
+        optimize_peepholes(&mut block.instructions, 3, ctx);
         optimize_peepholes(&mut block.instructions, 2, ctx);
     }
 }
@@ -38,6 +40,18 @@ fn optimize_peepholes(instructions: &mut Vec<Instruction>, window_size: usize, c
 /// optimization could be made.
 fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
     let peephole = match peephole {
+        [
+            Instruction::Push(l),
+            Instruction::Push(r),
+            Instruction::Binary(o),
+        ] => vec![Instruction::Push(Expr::Binary(
+            *o,
+            Box::new(l.clone()),
+            Box::new(r.clone()),
+        ))],
+        [Instruction::Push(r), Instruction::Unary(o)] => {
+            vec![Instruction::Push(Expr::Unary(*o, Box::new(r.clone())))]
+        }
         [Instruction::Duplicate, Instruction::Swap] => vec![Instruction::Duplicate],
         [Instruction::Duplicate, Instruction::Pop] | [Instruction::Swap, Instruction::Swap] => {
             Vec::new()
