@@ -142,11 +142,29 @@ predecessor:
 
 The optimizer repeats this step until no more basic blocks can be merged.
 
+### Peephole Optimization
+[Peephole optimization](https://en.wikipedia.org/wiki/Peephole_optimization) is
+a technique where small windows (peepholes) of instructions are replaced with
+more optimal equivalents. Peephole optimization is effective for miscellaneous
+'cleanup' tasks that don't require much analysis.
+
+The optimizer uses pattern matching to detect various optimization cases:
+
+#### Duplicate and Swap
+Duplicate and swap `:\` can be replaced with duplicate `:`. Duplicating the top
+value of the stack has no side effect and results in the top two values of the
+stack being equal. If the top two values of the stack are equal, then swapping
+them has no effect.
+
+#### No-ops
+A no-op is a sequence of instructions that have no overall effect. These
+patterns can be completely removed:
+* Duplicate and pop `:$` - Duplicating the top value of the stack has no side
+  effects. Popping the duplicated value results in no overall stack effect.
+* Swap and swap `\\` - Swapping the top two values of the stack twice results
+  in the same stack.
+
 <!--
-* [Peephole optimization](https://en.wikipedia.org/wiki/Peephole_optimization)
-\- Small windows of instructions (currently 2 or 3) are matched against
-patterns to be replaced with more optimal instructions that produce the same
-effect.
 * Branch optimization - If a constant is pushed before an if branch, or if the
 branch has equal branches, the condition can be popped and the branch can be
 replaced with an unconditional jump. If a not instruction appears before an if

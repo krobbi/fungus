@@ -1,5 +1,9 @@
 use crate::ir::{Block, Exit, Label, Program};
 
+// TODO: Consider separating the program from the context. The context isn't
+// very useful because borrowing rules forbid it from being accessed while
+// mutating the program.
+
 /// Context for optimizing a program.
 pub struct OptimizationContext<'a> {
     /// The program.
@@ -42,6 +46,11 @@ impl<'a> OptimizationContext<'a> {
     /// Returns an iterator over the program's labels, except for a given label.
     pub fn labels_except(&self, label: &Label) -> impl Iterator<Item = &Label> {
         self.labels().filter(move |l| *l != label)
+    }
+
+    /// Returns a mutable iterator over the program's blocks.
+    pub fn blocks_mut(&mut self) -> impl Iterator<Item = &mut Block> {
+        self.program.blocks.values_mut()
     }
 
     /// Returns a mutable reference to a block from its label.
