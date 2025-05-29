@@ -1,35 +1,29 @@
-use crate::{ir::Instruction, optimize::context::OptimizationContext};
+use crate::{
+    ir::Instruction,
+    optimize::{context::Context, graph::Graph},
+};
 
 /// Performs peephole optimization to replace instructions with more optimal
 /// equivalents.
-pub fn replace_instructions(ctx: &mut OptimizationContext) {
-    let mut has_changes = false;
-    for block in ctx.blocks_mut() {
-        has_changes |= optimize_peepholes(&mut block.instructions, 2);
-    }
-
-    if has_changes {
-        ctx.mark_change();
+pub fn replace_instructions(graph: &mut Graph, ctx: &mut Context) {
+    for block in graph.blocks_mut() {
+        optimize_peepholes(&mut block.instructions, 2, ctx);
     }
 }
 
 /// Performs peephole optimization on a vector of instructions with a window
 /// size and returns whether any changes were made.
-fn optimize_peepholes(instructions: &mut Vec<Instruction>, window_size: usize) -> bool {
-    let mut has_changes = false;
-
+fn optimize_peepholes(instructions: &mut Vec<Instruction>, window_size: usize, ctx: &mut Context) {
     let mut index = 0;
     loop {
         let range = index..index + window_size;
         let Some(peephole) = instructions.get(range.clone()) else {
-            // Tried to index out of bounds. The end of the block was reached,
-            // or the block is too small for the window.
-            return has_changes;
+            return;
         };
 
         if let Some(peephole) = optimize_peephole(peephole) {
             instructions.splice(range, peephole);
-            has_changes = true;
+            ctx.mark_change();
 
             // Move the window backwards to try using the result of the
             // optimization.

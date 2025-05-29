@@ -1,21 +1,24 @@
 mod context;
+mod graph;
 mod step;
 
-use context::OptimizationContext;
+use context::Context;
+use graph::Graph;
 
 use crate::ir::Program;
 
 /// Optimizes a program.
 pub fn optimize_program(program: &mut Program) {
-    let mut ctx = OptimizationContext::new(program);
+    let mut graph = Graph::new(program);
+    let mut ctx = Context::new();
 
     while ctx.should_run_pass() {
-        run_pass(&mut ctx);
+        run_pass(&mut graph, &mut ctx);
     }
 }
 
 /// Runs an optimization pass.
-fn run_pass(ctx: &mut OptimizationContext) {
-    step::merge_blocks(ctx);
-    step::replace_instructions(ctx);
+fn run_pass(graph: &mut Graph, ctx: &mut Context) {
+    step::merge_blocks(graph, ctx);
+    step::replace_instructions(graph, ctx);
 }

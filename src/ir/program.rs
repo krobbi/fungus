@@ -5,7 +5,7 @@ use std::{
 
 use super::{Block, Label};
 
-/// A Befunge program represented as a graph of labeled blocks.
+/// A Befunge program.
 pub struct Program {
     /// The blocks.
     pub blocks: BTreeMap<Label, Block>,

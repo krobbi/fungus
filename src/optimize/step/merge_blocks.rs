@@ -1,11 +1,14 @@
-use crate::{ir::Label, optimize::context::OptimizationContext};
+use crate::{
+    ir::Label,
+    optimize::{context::Context, graph::Graph},
+};
 
 /// Merges blocks with a single foreign predecessor from an unconditional jump
 /// into their predecessor.
-pub fn merge_blocks(ctx: &mut OptimizationContext) {
-    while let Some((predecessor, successor)) = find_edge(ctx) {
-        let mut successor = ctx.remove_block(&successor);
-        let predecessor = ctx.block_mut(&predecessor);
+pub fn merge_blocks(graph: &mut Graph, ctx: &mut Context) {
+    while let Some((predecessor, successor)) = find_edge(graph) {
+        let mut successor = graph.remove_block(&successor);
+        let predecessor = graph.block_mut(&predecessor);
 
         predecessor.instructions.append(&mut successor.instructions);
         predecessor.exit = successor.exit;
@@ -15,15 +18,16 @@ pub fn merge_blocks(ctx: &mut OptimizationContext) {
 
 /// Finds the first edge eligable for block merging. Returns `None` if there are
 /// no eligable edges.
-fn find_edge(ctx: &OptimizationContext) -> Option<(Label, Label)> {
-    for predecessor in ctx.labels() {
-        let Some(successor) = ctx.foreign_jump_successor(predecessor) else {
+fn find_edge(graph: &Graph) -> Option<(Label, Label)> {
+    for predecessor in graph.labels() {
+        let Some(successor) = graph.foreign_jump_successor(predecessor) else {
             continue; // The predecessor does not jump to a different successor.
         };
 
-        if ctx
-            .labels_except(predecessor)
-            .any(|l| ctx.has_edge(l, successor))
+        if graph
+            .labels()
+            .filter(|l| *l != predecessor)
+            .any(|l| graph.has_edge(l, successor))
         {
             continue; // The successor has another predecessor.
         }
