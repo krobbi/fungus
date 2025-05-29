@@ -200,6 +200,8 @@ them has no effect.
 #### No-ops
 A no-op is a sequence of instructions that have no overall effect. These
 patterns can be completely removed:
+* Pure push and pop `0$` - Pushing an expression and immediately popping it has
+no effect, as long as the expression has no side effects.
 * Duplicate and pop `:$` - Duplicating the top value of the stack has no side
   effects. Popping the duplicated value results in no overall stack effect.
 * Swap and swap `\\` - Swapping the top two values of the stack twice results

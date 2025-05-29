@@ -52,6 +52,7 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         [Instruction::Push(r), Instruction::Unary(o)] => {
             vec![Instruction::Push(Expr::Unary(*o, Box::new(r.clone())))]
         }
+        [Instruction::Push(e), Instruction::Pop] if e.can_pop() => Vec::new(),
         [Instruction::Duplicate, Instruction::Swap] => vec![Instruction::Duplicate],
         [Instruction::Duplicate, Instruction::Pop] | [Instruction::Swap, Instruction::Swap] => {
             Vec::new()
