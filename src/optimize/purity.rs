@@ -2,7 +2,7 @@ use crate::ast::{BinOp, Expr};
 
 /// An expression's purity level.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Purity {
+enum Purity {
     /// A purity level of an expression that may have side effects.
     Impure,
 
@@ -18,7 +18,12 @@ pub enum Purity {
 }
 
 impl Expr {
-    /// Returns the expression's purity.
+    /// Returns whether the expression can be statically popped.
+    pub fn can_pop(&self) -> bool {
+        self.purity() >= Purity::PartiallyPure
+    }
+
+    /// Returns the expression's purity level.
     fn purity(&self) -> Purity {
         match self {
             Self::Literal(_) => Purity::Pure,
@@ -28,10 +33,5 @@ impl Expr {
             Self::Binary(_, l, r) => l.purity().min(r.purity()),
             Self::Unary(_, r) => r.purity(),
         }
-    }
-
-    /// Returns whether the expression can be safely popped.
-    pub fn can_pop(&self) -> bool {
-        self.purity() >= Purity::PartiallyPure
     }
 }
