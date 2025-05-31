@@ -55,7 +55,29 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         [Binary(_) | Get, Pop] => vec![Pop, Pop],
         [Duplicate, Swap] => vec![Duplicate],
         [Print(a), Print(b)] => vec![Print(a.clone() + b)],
+        [a, b] if a.is_stack_operation() && b.is_statement() => vec![b.clone(), a.clone()],
         _ => return None,
     };
     Some(peephole)
+}
+
+impl Instruction {
+    /// Returns whether the instruction has stack effects but no side effects.
+    fn is_stack_operation(&self) -> bool {
+        matches!(
+            self,
+            Self::Push(_)
+                | Self::Unary(_)
+                | Self::Binary(_)
+                | Self::Duplicate
+                | Self::Swap
+                | Self::Pop
+                | Self::Get
+        )
+    }
+
+    /// Returns whether the instruction has side effects but no stack effects.
+    fn is_statement(&self) -> bool {
+        matches!(self, Self::Print(_))
+    }
 }

@@ -185,6 +185,12 @@ This allows sequences of instructions to be folded into a single, more
 specialized instruction. For example, `1.` is folded into a single instruction
 that prints `"1 "` without touching the stack.
 
+#### Instruction Bubbling
+Stack operations (instructions that have stack effects but no side effects) and
+statements (instructions that have side effects but no stack effects) can be
+swapped so that statements come first. This is mostly done to unblock other
+optimizations.
+
 <!--
 * Branch optimization - If a constant is pushed before an if branch, or if the
 branch has equal branches, the condition can be popped and the branch can be

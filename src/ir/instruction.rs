@@ -5,6 +5,7 @@ use crate::common::Value;
 use super::ops::{BinOp, DivOp, UnOp};
 
 /// An instruction in a block.
+#[derive(Clone)]
 pub enum Instruction {
     /// An instruction to push a value to the stack.
     /// `[...]` -> `[...][value]`
