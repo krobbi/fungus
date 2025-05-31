@@ -48,6 +48,9 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         [Instruction::Push(r), Instruction::Divide(o)] if r.into_i32() != 0 => {
             vec![Instruction::Push(*r), Instruction::Binary((*o).into())]
         }
+        [Instruction::Push(v), Instruction::Duplicate] => {
+            vec![Instruction::Push(*v), Instruction::Push(*v)]
+        }
         [
             Instruction::Push(_) | Instruction::Duplicate,
             Instruction::Pop,

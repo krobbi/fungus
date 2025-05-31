@@ -153,14 +153,17 @@ The optimizer uses pattern matching to detect various optimization cases:
 #### No-ops
 A no-op is a sequence of instructions that have no overall effect. These
 patterns can be completely removed:
-* Pure push and pop (`0$`, `:$`) - Pushing a value with no side effects and
-  immediately popping it has no effect.
+* Push and pop (`0$`, `:$`) - Pushing a value with no side effects before
+  popping it has no effect.
 * Swap and swap (`\\`) - Swapping the top two values of the stack twice results
   in the same stack.
 
 #### Constant Folding
-Constant values pushed to the stack before an operator (`12+`) can be replaced
-with the result of the operation (`3`.)
+Push and operate (`12+`) can be replaced with pushing the result of the
+operation (`3`.)
+
+#### Push and Duplicate
+Push and duplicate (`1:`) can be replaced with pushing the value twice (`11`.)
 
 #### Duplicate and Swap
 Duplicate and swap (`:\`) can be replaced with duplicate (`:`.) Duplicating the
