@@ -38,34 +38,18 @@ fn optimize_peepholes(instructions: &mut Vec<Instruction>, window_size: usize, c
 /// Returns an optimized equivalent of a peephole. Returns `None` if no
 /// optimization could be made.
 fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
+    use Instruction::{Binary, Divide, Duplicate, Get, Pop, Push, Swap, Unary};
+
     let peephole = match peephole {
-        [
-            Instruction::Push(l),
-            Instruction::Push(r),
-            Instruction::Binary(o),
-        ] => vec![Instruction::Push(o.eval(*l, *r))],
-        [
-            Instruction::Push(a),
-            Instruction::Push(b),
-            Instruction::Swap,
-        ] => vec![Instruction::Push(*b), Instruction::Push(*a)],
-        [Instruction::Push(r), Instruction::Unary(o)] => vec![Instruction::Push(o.eval(*r))],
-        [Instruction::Push(r), Instruction::Divide(o)] if r.into_i32() != 0 => {
-            vec![Instruction::Push(*r), Instruction::Binary((*o).into())]
-        }
-        [Instruction::Push(v), Instruction::Duplicate] => {
-            vec![Instruction::Push(*v), Instruction::Push(*v)]
-        }
-        [
-            Instruction::Push(_) | Instruction::Duplicate,
-            Instruction::Pop,
-        ]
-        | [Instruction::Swap, Instruction::Swap] => Vec::new(),
-        [Instruction::Unary(_), Instruction::Pop] => vec![Instruction::Pop],
-        [Instruction::Binary(_) | Instruction::Get, Instruction::Pop] => {
-            vec![Instruction::Pop, Instruction::Pop]
-        }
-        [Instruction::Duplicate, Instruction::Swap] => vec![Instruction::Duplicate],
+        [Push(l), Push(r), Binary(o)] => vec![Push(o.eval(*l, *r))],
+        [Push(a), Push(b), Swap] => vec![Push(*b), Push(*a)],
+        [Push(r), Unary(o)] => vec![Push(o.eval(*r))],
+        [Push(r), Divide(o)] if r.into_i32() != 0 => vec![Push(*r), Binary((*o).into())],
+        [Push(v), Duplicate] => vec![Push(*v), Push(*v)],
+        [Push(_) | Duplicate, Pop] | [Swap, Swap] => Vec::new(),
+        [Unary(_), Pop] => vec![Pop],
+        [Binary(_) | Get, Pop] => vec![Pop, Pop],
+        [Duplicate, Swap] => vec![Duplicate],
         _ => return None,
     };
     Some(peephole)
