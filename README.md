@@ -165,6 +165,10 @@ operation (`3`.)
 #### Push and Duplicate
 Push and duplicate (`1:`) can be replaced with pushing the value twice (`11`.)
 
+#### Push and Swap
+Push and swap (`12\`) can be replaced with pushing the values in reverse order
+(`21`.)
+
 #### Duplicate and Swap
 Duplicate and swap (`:\`) can be replaced with duplicate (`:`.) Duplicating the
 top value of the stack has no side effect and results in the top two values of
