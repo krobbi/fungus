@@ -44,6 +44,15 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
             Instruction::Pop,
         ]
         | [Instruction::Swap, Instruction::Swap] => Vec::new(),
+        [
+            Instruction::Add
+            | Instruction::Subtract
+            | Instruction::Multiply
+            | Instruction::Greater
+            | Instruction::Get,
+            Instruction::Pop,
+        ] => vec![Instruction::Pop, Instruction::Pop],
+        [Instruction::Not, Instruction::Pop] => vec![Instruction::Pop],
         [Instruction::Duplicate, Instruction::Swap] => vec![Instruction::Duplicate],
         _ => return None,
     };

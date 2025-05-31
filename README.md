@@ -164,6 +164,10 @@ top value of the stack has no side effect and results in the top two values of
 the stack being equal. If the top two values of the stack are equal, then
 swapping them has no effect.
 
+#### Operate and Pop
+Operations with no side effects followed by a pop (`+$`, `!$`, `g$`...) can be
+replaced with popping the number of operands.
+
 <!--
 * Branch optimization - If a constant is pushed before an if branch, or if the
 branch has equal branches, the condition can be popped and the branch can be
