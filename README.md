@@ -150,62 +150,19 @@ more optimal equivalents. Peephole optimization is effective for miscellaneous
 
 The optimizer uses pattern matching to detect various optimization cases:
 
-#### Expression Building
-The control flow graph parsed by Fungus represents expressions with
-[abstract syntax trees](https://en.wikipedia.org/wiki/Abstract_syntax_tree).
-Because Befunge is so low-level, 'decompiling' it to a higher level can make it
-easier to analyze in some cases. Push instructions followed by operator
-instructions can be replaced with a single instruction that pushes an AST.
-
-This doesn't affect runtime performance, but it reduces the workload for other
-optimizations and enables constant folding at a more sophisticated level than
-can be achieved with peephole optimization.
-
-##### Example
-This Befunge snippet prints `1` if an inputted integer is less than or equal to
-`100`, and otherwise prints `0`:
-```
-&55*4*`!.@
-```
-
-This may generate the following code:
-```
-main:
-        push    input_int()
-        push    5
-        push    5
-        binary  *
-        push    4
-        binary  *
-        binary  >
-        unary   !
-        outint
-        end
-```
-
-Expression building would optimize it to the following:
-```
-main:
-        push    !(input_int() > ((5 * 5) * 4))
-        outint
-        end
-```
-
-#### Duplicate and Swap
-Duplicate and swap `:\` can be replaced with duplicate `:`. Duplicating the top
-value of the stack has no side effect and results in the top two values of the
-stack being equal. If the top two values of the stack are equal, then swapping
-them has no effect.
-
 #### No-ops
 A no-op is a sequence of instructions that have no overall effect. These
 patterns can be completely removed:
-* Pure push and pop `0$` - Pushing an expression and immediately popping it has
-no effect, as long as the expression has no side effects.
-* Duplicate and pop `:$` - Duplicating the top value of the stack has no side
-  effects. Popping the duplicated value results in no overall stack effect.
-* Swap and swap `\\` - Swapping the top two values of the stack twice results
+* Pure push and pop (`0$`, `:$`) - Pushing a value with no side effects and
+  immediately popping it has no effect.
+* Swap and swap (`\\`) - Swapping the top two values of the stack twice results
   in the same stack.
+
+#### Duplicate and Swap
+Duplicate and swap (`:\`) can be replaced with duplicate (`:`). Duplicating the
+top value of the stack has no side effect and results in the top two values of
+the stack being equal. If the top two values of the stack are equal, then
+swapping them has no effect.
 
 <!--
 * Branch optimization - If a constant is pushed before an if branch, or if the

@@ -1,6 +1,5 @@
 mod context;
 mod graph;
-mod purity;
 mod step;
 
 use context::Context;

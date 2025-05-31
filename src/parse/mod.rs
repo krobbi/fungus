@@ -5,7 +5,6 @@ use std::collections::{BTreeMap, BTreeSet};
 use cursor::Cursor;
 
 use crate::{
-    ast::{BinOp, Expr, UnOp},
     common::Playfield,
     ir::{
         Block, Exit, Instruction, Label, Program, State,
@@ -51,23 +50,23 @@ pub fn parse_program(playfield: &Playfield) -> Program {
 fn parse_block(cursor: Cursor) -> Block {
     let value = cursor.value();
     match (cursor.mode(), value.into_char_lossy()) {
-        (Mode::Command, '0') => literal(0, cursor),
-        (Mode::Command, '1') => literal(1, cursor),
-        (Mode::Command, '2') => literal(2, cursor),
-        (Mode::Command, '3') => literal(3, cursor),
-        (Mode::Command, '4') => literal(4, cursor),
-        (Mode::Command, '5') => literal(5, cursor),
-        (Mode::Command, '6') => literal(6, cursor),
-        (Mode::Command, '7') => literal(7, cursor),
-        (Mode::Command, '8') => literal(8, cursor),
-        (Mode::Command, '9') => literal(9, cursor),
-        (Mode::Command, '+') => binary(BinOp::Add, cursor),
-        (Mode::Command, '-') => binary(BinOp::Subtract, cursor),
-        (Mode::Command, '*') => binary(BinOp::Multiply, cursor),
-        (Mode::Command, '/') => binary(BinOp::Divide, cursor),
-        (Mode::Command, '%') => binary(BinOp::Modulo, cursor),
-        (Mode::Command, '!') => Instruction::Unary(UnOp::Not).into_block(cursor),
-        (Mode::Command, '`') => binary(BinOp::Greater, cursor),
+        (Mode::Command, '0') => Instruction::Push(0.into()).into_block(cursor),
+        (Mode::Command, '1') => Instruction::Push(1.into()).into_block(cursor),
+        (Mode::Command, '2') => Instruction::Push(2.into()).into_block(cursor),
+        (Mode::Command, '3') => Instruction::Push(3.into()).into_block(cursor),
+        (Mode::Command, '4') => Instruction::Push(4.into()).into_block(cursor),
+        (Mode::Command, '5') => Instruction::Push(5.into()).into_block(cursor),
+        (Mode::Command, '6') => Instruction::Push(6.into()).into_block(cursor),
+        (Mode::Command, '7') => Instruction::Push(7.into()).into_block(cursor),
+        (Mode::Command, '8') => Instruction::Push(8.into()).into_block(cursor),
+        (Mode::Command, '9') => Instruction::Push(9.into()).into_block(cursor),
+        (Mode::Command, '+') => Instruction::Add.into_block(cursor),
+        (Mode::Command, '-') => Instruction::Subtract.into_block(cursor),
+        (Mode::Command, '*') => Instruction::Multiply.into_block(cursor),
+        (Mode::Command, '/') => Instruction::Divide.into_block(cursor),
+        (Mode::Command, '%') => Instruction::Modulo.into_block(cursor),
+        (Mode::Command, '!') => Instruction::Not.into_block(cursor),
+        (Mode::Command, '`') => Instruction::Greater.into_block(cursor),
         (Mode::Command, '>') => cursor.go(Direction::Right).into(),
         (Mode::Command, '<') => cursor.go(Direction::Left).into(),
         (Mode::Command, '^') => cursor.go(Direction::Up).into(),
@@ -84,22 +83,12 @@ fn parse_block(cursor: Cursor) -> Block {
         (Mode::Command, '#') => cursor.step().step().into(),
         (Mode::Command, 'g') => Instruction::Get.into_block(cursor),
         (Mode::Command, 'p') => Instruction::Put.into_block(cursor),
-        (Mode::Command, '&') => push(Expr::InputInt, cursor),
-        (Mode::Command, '~') => push(Expr::InputChar, cursor),
+        (Mode::Command, '&') => Instruction::InputInt.into_block(cursor),
+        (Mode::Command, '~') => Instruction::InputChar.into_block(cursor),
         (Mode::Command, '@') => Exit::End.into_block(),
         (Mode::Command, _) => cursor.step().into(),
-        (Mode::String, _) => literal(value.into_i32(), cursor),
+        (Mode::String, _) => Instruction::Push(value).into_block(cursor),
     }
-}
-
-/// Creates a new literal expression block from a value and a cursor.
-fn literal(value: i32, cursor: Cursor) -> Block {
-    push(Expr::Literal(value.into()), cursor)
-}
-
-/// Creates a new binary operation block from a binary operator and a cursor.
-fn binary(op: BinOp, cursor: Cursor) -> Block {
-    Instruction::Binary(op).into_block(cursor)
 }
 
 /// Creates a new random block from a cursor.
@@ -116,11 +105,6 @@ fn branch(then_direction: Direction, else_direction: Direction, cursor: Cursor) 
     let then_label = cursor.clone().go(then_direction).into();
     let else_label = cursor.go(else_direction).into();
     Exit::Branch(then_label, else_label).into_block()
-}
-
-/// Creates a new push block from an expression and a cursor.
-fn push(expr: Expr, cursor: Cursor) -> Block {
-    Instruction::Push(expr).into_block(cursor)
 }
 
 impl Instruction {

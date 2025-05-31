@@ -1,4 +1,3 @@
-mod ast;
 mod common;
 mod config;
 mod error;
