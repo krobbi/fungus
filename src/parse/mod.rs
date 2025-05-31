@@ -8,6 +8,7 @@ use crate::{
     common::Playfield,
     ir::{
         Block, Exit, Instruction, Label, Program, State,
+        ops::{BinOp, DivOp, UnOp},
         state::{Direction, Mode},
     },
 };
@@ -50,23 +51,23 @@ pub fn parse_program(playfield: &Playfield) -> Program {
 fn parse_block(cursor: Cursor) -> Block {
     let value = cursor.value();
     match (cursor.mode(), value.into_char_lossy()) {
-        (Mode::Command, '0') => Instruction::Push(0.into()).into_block(cursor),
-        (Mode::Command, '1') => Instruction::Push(1.into()).into_block(cursor),
-        (Mode::Command, '2') => Instruction::Push(2.into()).into_block(cursor),
-        (Mode::Command, '3') => Instruction::Push(3.into()).into_block(cursor),
-        (Mode::Command, '4') => Instruction::Push(4.into()).into_block(cursor),
-        (Mode::Command, '5') => Instruction::Push(5.into()).into_block(cursor),
-        (Mode::Command, '6') => Instruction::Push(6.into()).into_block(cursor),
-        (Mode::Command, '7') => Instruction::Push(7.into()).into_block(cursor),
-        (Mode::Command, '8') => Instruction::Push(8.into()).into_block(cursor),
-        (Mode::Command, '9') => Instruction::Push(9.into()).into_block(cursor),
-        (Mode::Command, '+') => Instruction::Add.into_block(cursor),
-        (Mode::Command, '-') => Instruction::Subtract.into_block(cursor),
-        (Mode::Command, '*') => Instruction::Multiply.into_block(cursor),
-        (Mode::Command, '/') => Instruction::Divide.into_block(cursor),
-        (Mode::Command, '%') => Instruction::Modulo.into_block(cursor),
-        (Mode::Command, '!') => Instruction::Not.into_block(cursor),
-        (Mode::Command, '`') => Instruction::Greater.into_block(cursor),
+        (Mode::Command, '0') => push(0, cursor),
+        (Mode::Command, '1') => push(1, cursor),
+        (Mode::Command, '2') => push(2, cursor),
+        (Mode::Command, '3') => push(3, cursor),
+        (Mode::Command, '4') => push(4, cursor),
+        (Mode::Command, '5') => push(5, cursor),
+        (Mode::Command, '6') => push(6, cursor),
+        (Mode::Command, '7') => push(7, cursor),
+        (Mode::Command, '8') => push(8, cursor),
+        (Mode::Command, '9') => push(9, cursor),
+        (Mode::Command, '+') => binary(BinOp::Add, cursor),
+        (Mode::Command, '-') => binary(BinOp::Subtract, cursor),
+        (Mode::Command, '*') => binary(BinOp::Multiply, cursor),
+        (Mode::Command, '/') => divide(DivOp::Quotient, cursor),
+        (Mode::Command, '%') => divide(DivOp::Remainder, cursor),
+        (Mode::Command, '!') => unary(UnOp::Not, cursor),
+        (Mode::Command, '`') => binary(BinOp::Greater, cursor),
         (Mode::Command, '>') => cursor.go(Direction::Right).into(),
         (Mode::Command, '<') => cursor.go(Direction::Left).into(),
         (Mode::Command, '^') => cursor.go(Direction::Up).into(),
@@ -87,8 +88,28 @@ fn parse_block(cursor: Cursor) -> Block {
         (Mode::Command, '~') => Instruction::InputChar.into_block(cursor),
         (Mode::Command, '@') => Exit::End.into_block(),
         (Mode::Command, _) => cursor.step().into(),
-        (Mode::String, _) => Instruction::Push(value).into_block(cursor),
+        (Mode::String, _) => push(value.into_i32(), cursor),
     }
+}
+
+/// Creates a new push block from a value and a cursor.
+fn push(value: i32, cursor: Cursor) -> Block {
+    Instruction::Push(value.into()).into_block(cursor)
+}
+
+/// Creates a new unary operation block from an operator and a cursor.
+fn unary(op: UnOp, cursor: Cursor) -> Block {
+    Instruction::Unary(op).into_block(cursor)
+}
+
+/// Creates a new binary operation block from an operator and a cursor.
+fn binary(op: BinOp, cursor: Cursor) -> Block {
+    Instruction::Binary(op).into_block(cursor)
+}
+
+/// Creates a new division operation block from an operator and a cursor.
+fn divide(op: DivOp, cursor: Cursor) -> Block {
+    Instruction::Divide(op).into_block(cursor)
 }
 
 /// Creates a new random block from a cursor.

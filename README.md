@@ -158,15 +158,19 @@ patterns can be completely removed:
 * Swap and swap (`\\`) - Swapping the top two values of the stack twice results
   in the same stack.
 
+#### Constant Folding
+Constant values pushed to the stack before an operator (`12+`) can be replaced
+with the result of the operation (`3`.)
+
 #### Duplicate and Swap
-Duplicate and swap (`:\`) can be replaced with duplicate (`:`). Duplicating the
+Duplicate and swap (`:\`) can be replaced with duplicate (`:`.) Duplicating the
 top value of the stack has no side effect and results in the top two values of
 the stack being equal. If the top two values of the stack are equal, then
 swapping them has no effect.
 
 #### Operate and Pop
-Operations with no side effects followed by a pop (`+$`, `!$`, `g$`...) can be
-replaced with popping the number of operands.
+Operations with no side effects followed by a pop (`!$`, `+$`, `g$`...) can be
+replaced with popping the number of operands (`$`, `$$`.)
 
 <!--
 * Branch optimization - If a constant is pushed before an if branch, or if the

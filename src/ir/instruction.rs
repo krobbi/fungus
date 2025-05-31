@@ -2,43 +2,28 @@ use std::fmt::{self, Display, Formatter};
 
 use crate::common::Value;
 
+use super::ops::{BinOp, DivOp, UnOp};
+
 /// An instruction in a block.
 pub enum Instruction {
     /// An instruction to push a value to the stack.
     /// `[...]` -> `[...][value]`
     Push(Value),
 
-    /// An instruction to add the top two values of the stack.
-    /// `[...][lhs][rhs]` -> `[...][lhs + rhs]`
-    Add,
+    /// An instruction to apply a pure unary operator to the top value of the
+    /// stack.
+    /// `[...][rhs]` -> `[...][op rhs]`
+    Unary(UnOp),
 
-    /// An instruction to subtract the top value of the stack from the
-    /// second-top value of the stack.
-    /// `[...][lhs][rhs]` -> `[...][lhs - rhs]`
-    Subtract,
+    /// An instruction to apply a pure binary operator to the top two values of
+    /// the stack.
+    /// `[...][lhs][rhs]` -> `[...][lhs op rhs]`
+    Binary(BinOp),
 
-    /// An instruction to multiply the top two values of the stack.
-    /// `[...][lhs][rhs]` -> `[...][lhs * rhs]`
-    Multiply,
-
-    /// An instruction to divide the second-top value of the stack by the top
-    /// value of the stack.
-    /// `[...][lhs][rhs]` -> `[...][lhs / rhs]`
-    Divide,
-
-    /// An instruction to evaluate the remainder of dividing the second-top
-    /// value of the stack by the top value of the stack.
-    /// `[...][lhs][rhs]` -> `[...][lhs % rhs]`
-    Modulo,
-
-    /// An instruction to logically negate the top value of the stack.
-    /// `[...][rhs]` -> `[...][lhs == 0 ? 1 : 0]`
-    Not,
-
-    /// An instruction to compare the second-top value of the stack as greater
-    /// than the top value of the stack.
-    /// `[...][lhs][rhs]` -> `[...][lhs > rhs ? 1 : 0]`
-    Greater,
+    /// An instruction to apply a division operator to the top two values of the
+    /// stack that has side effects if the right-hand operand is zero.
+    /// `[...][lhs][rhs]` -> `[...][lhs op rhs]`
+    Divide(DivOp),
 
     /// An instruction to pop a value from the stack and push it to the stack
     /// twice.
@@ -87,13 +72,9 @@ impl Display for Instruction {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let data = match self {
             Self::Push(v) => return write!(f, "{:8}{}", "push", v.into_i32()),
-            Self::Add => "add",
-            Self::Subtract => "sub",
-            Self::Multiply => "mul",
-            Self::Divide => "divide",
-            Self::Modulo => "modulo",
-            Self::Not => "not",
-            Self::Greater => "greater",
+            Self::Unary(o) => return write!(f, "{:8}{o}", "unary"),
+            Self::Binary(o) => return write!(f, "{:8}{o}", "binary"),
+            Self::Divide(o) => return write!(f, "{:8}{o}", "divide"),
             Self::Duplicate => "dup",
             Self::Swap => "swap",
             Self::Pop => "pop",

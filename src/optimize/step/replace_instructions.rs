@@ -40,19 +40,23 @@ fn optimize_peepholes(instructions: &mut Vec<Instruction>, window_size: usize, c
 fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
     let peephole = match peephole {
         [
+            Instruction::Push(l),
+            Instruction::Push(r),
+            Instruction::Binary(o),
+        ] => vec![Instruction::Push(o.eval(*l, *r))],
+        [Instruction::Push(r), Instruction::Unary(o)] => vec![Instruction::Push(o.eval(*r))],
+        [Instruction::Push(r), Instruction::Divide(o)] if r.into_i32() != 0 => {
+            vec![Instruction::Push(*r), Instruction::Binary((*o).into())]
+        }
+        [
             Instruction::Push(_) | Instruction::Duplicate,
             Instruction::Pop,
         ]
         | [Instruction::Swap, Instruction::Swap] => Vec::new(),
-        [
-            Instruction::Add
-            | Instruction::Subtract
-            | Instruction::Multiply
-            | Instruction::Greater
-            | Instruction::Get,
-            Instruction::Pop,
-        ] => vec![Instruction::Pop, Instruction::Pop],
-        [Instruction::Not, Instruction::Pop] => vec![Instruction::Pop],
+        [Instruction::Unary(_), Instruction::Pop] => vec![Instruction::Pop],
+        [Instruction::Binary(_) | Instruction::Get, Instruction::Pop] => {
+            vec![Instruction::Pop, Instruction::Pop]
+        }
         [Instruction::Duplicate, Instruction::Swap] => vec![Instruction::Duplicate],
         _ => return None,
     };
