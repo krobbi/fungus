@@ -66,6 +66,9 @@ pub enum Instruction {
     /// An instruction to push a character value to the stack from user input.
     /// `[...]` -> `[...][char]`
     InputChar,
+
+    /// An instruction to output a string with no stack effect.
+    Print(String),
 }
 
 impl Display for Instruction {
@@ -84,6 +87,7 @@ impl Display for Instruction {
             Self::Put => "put",
             Self::InputInt => "inint",
             Self::InputChar => "inchar",
+            Self::Print(s) => return write!(f, "{:8}\"{}\"", "print", s.escape_default()),
         };
         f.write_str(data)
     }

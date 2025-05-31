@@ -38,7 +38,9 @@ fn optimize_peepholes(instructions: &mut Vec<Instruction>, window_size: usize, c
 /// Returns an optimized equivalent of a peephole. Returns `None` if no
 /// optimization could be made.
 fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
-    use Instruction::{Binary, Divide, Duplicate, Get, Pop, Push, Swap, Unary};
+    use Instruction::{
+        Binary, Divide, Duplicate, Get, OutputChar, OutputInt, Pop, Print, Push, Swap, Unary,
+    };
 
     let peephole = match peephole {
         [Push(l), Push(r), Binary(o)] => vec![Push(o.eval(*l, *r))],
@@ -47,9 +49,12 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         [Push(r), Divide(o)] if r.into_i32() != 0 => vec![Push(*r), Binary((*o).into())],
         [Push(v), Duplicate] => vec![Push(*v), Push(*v)],
         [Push(_) | Duplicate, Pop] | [Swap, Swap] => Vec::new(),
+        [Push(v), OutputInt] => vec![Print(v.into_i32().to_string() + " ")],
+        [Push(v), OutputChar] => vec![Print(v.into_char_lossy().into())],
         [Unary(_), Pop] => vec![Pop],
         [Binary(_) | Get, Pop] => vec![Pop, Pop],
         [Duplicate, Swap] => vec![Duplicate],
+        [Print(a), Print(b)] => vec![Print(a.clone() + b)],
         _ => return None,
     };
     Some(peephole)

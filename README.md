@@ -179,6 +179,12 @@ swapping them has no effect.
 Operations with no side effects followed by a pop (`!$`, `+$`, `g$`...) can be
 replaced with popping the number of operands (`$`, `$$`.)
 
+#### Instruction Folding
+Fungus is allowed to have a more complex instruction set than Befunge supports.
+This allows sequences of instructions to be folded into a single, more
+specialized instruction. For example, `1.` is folded into a single instruction
+that prints `"1 "` without touching the stack.
+
 <!--
 * Branch optimization - If a constant is pushed before an if branch, or if the
 branch has equal branches, the condition can be popped and the branch can be
