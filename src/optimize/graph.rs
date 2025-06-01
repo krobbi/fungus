@@ -12,10 +12,15 @@ impl<'a> Graph<'a> {
         Self { program }
     }
 
+    /// Returns an iterator over a label's exit labels.
+    pub fn exit_labels(&self, label: &Label) -> impl Iterator<Item = &Label> {
+        self.block(label).exit.to_labels().into_iter()
+    }
+
     /// Returns whether an edge exists between a predecessor label and a
     /// successor label.
     pub fn has_edge(&self, predecessor: &Label, successor: &Label) -> bool {
-        self.program.blocks[predecessor]
+        self.block(predecessor)
             .exit
             .to_labels()
             .contains(&successor)
@@ -36,9 +41,19 @@ impl<'a> Graph<'a> {
         self.program.blocks.keys()
     }
 
+    /// Returns a cloned boxed slice of the labels.
+    pub fn labels_cloned(&self) -> Box<[Label]> {
+        self.labels().cloned().collect()
+    }
+
     /// Returns a mutable iterator over the blocks.
     pub fn blocks_mut(&mut self) -> impl Iterator<Item = &mut Block> {
         self.program.blocks.values_mut()
+    }
+
+    /// Returns a reference to a block from its label.
+    pub fn block(&self, label: &Label) -> &Block {
+        &self.program.blocks[label]
     }
 
     /// Returns a mutable reference to a block from its label.

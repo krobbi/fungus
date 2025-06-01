@@ -20,5 +20,7 @@ pub fn optimize_program(program: &mut Program) {
 /// Runs an optimization pass.
 fn run_pass(graph: &mut Graph, ctx: &mut Context) {
     step::merge_blocks(graph, ctx);
+    step::thread_jumps(graph, ctx);
+    step::remove_unreachable_blocks(graph, ctx);
     step::replace_instructions(graph, ctx);
 }

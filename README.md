@@ -142,11 +142,40 @@ predecessor:
 
 The optimizer repeats this step until no more basic blocks can be merged.
 
+### Jump Threading
+When Befunge programs with converging branches are parsed, multiple basic
+blocks can lead into a single basic block containing only an unconditional
+jump. Any labels targeting a basic block with only a jump can be redirected to
+the jump's target.
+
+This step affects the macro-scale structure of the program's basic blocks, so
+it is run early, after basic block merging.
+
+### Dead Code Elimination
+Redirecting labels in the jump threading step can cause some basic blocks to
+become unreachable. A
+[dead code elimination](https://en.wikipedia.org/wiki/Dead-code_elimination)
+step is run after the jump threading step to remove these basic blocks.
+
+The easiest way to find if a basic block is unreachable is to find the set of
+all reachable basic blocks and compare it with this set. The following
+algorithm is used to find the set of all reachable basic blocks:
+1. Add the main entry point label to a set of pending labels.
+2. While there are pending labels:
+   1. Remove a label from the set of pending labels.
+   2. If the label is already in the set of reachable labels:
+      1. Skip this label and continue to the next one.
+   3. Add the label to a set of reachable labels.
+   4. Add the labels from the labeled basic block's exit point to the set of
+      pending labels.
+
+Any basic blocks that are not labeled by the set of reachable labels can be
+safely removed.
+
 ### Peephole Optimization
 [Peephole optimization](https://en.wikipedia.org/wiki/Peephole_optimization) is
 a technique where small windows (peepholes) of instructions are replaced with
-more optimal equivalents. Peephole optimization is effective for miscellaneous
-'cleanup' tasks that don't require much analysis.
+more optimal equivalents.
 
 The optimizer uses pattern matching to detect various optimization cases:
 
@@ -196,12 +225,6 @@ optimizations.
 branch has equal branches, the condition can be popped and the branch can be
 replaced with an unconditional jump. If a not instruction appears before an if
 branch, the not instruction can be deleted and the branches can be swapped.
-* [Jump threading](https://en.wikipedia.org/wiki/Jump_threading) - Basic block
-exits that lead directly to an unconditional jump can be replaced with the
-jump's target.
-* [Dead code elimination](https://en.wikipedia.org/wiki/Dead_code_elimination)
-\- Starting at the main entry point. Any basic blocks that are not reachable
-are deleted.
 -->
 
 <!--
