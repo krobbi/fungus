@@ -220,12 +220,12 @@ statements (instructions that have side effects but no stack effects) can be
 swapped so that statements come first. This is mostly done to unblock other
 optimizations.
 
-<!--
-* Branch optimization - If a constant is pushed before an if branch, or if the
-branch has equal branches, the condition can be popped and the branch can be
-replaced with an unconditional jump. If a not instruction appears before an if
-branch, the not instruction can be deleted and the branches can be swapped.
--->
+### Branch Optimization
+If a conditional branch is taken with equal branches or a constant value on the
+top of the stack, then the condition can be popped and the branch can be
+replaced with anunconditional jump. If a conditional branch follows a not
+instruction (`!`), then the not instruction can be removed and the branches can
+be swapped.
 
 <!--
 # The Hard Part
