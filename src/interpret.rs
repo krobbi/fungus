@@ -1,4 +1,7 @@
-use std::io::{self, Write};
+use std::{
+    collections::VecDeque,
+    io::{self, Write},
+};
 
 use crate::{
     common::{Playfield, Value},
@@ -33,6 +36,9 @@ struct Interpreter<'a> {
 
     /// The stack.
     stack: Vec<Value>,
+
+    /// The character input buffer.
+    input_chars: VecDeque<char>,
 }
 
 impl<'a> Interpreter<'a> {
@@ -42,6 +48,7 @@ impl<'a> Interpreter<'a> {
             program,
             playfield,
             stack: Vec::new(),
+            input_chars: VecDeque::new(),
         }
     }
 
@@ -128,7 +135,17 @@ impl<'a> Interpreter<'a> {
                 }
             }
             Instruction::InputInt => self.input_int(),
-            Instruction::InputChar => todo!("input characters"),
+            Instruction::InputChar => {
+                if self.input_chars.is_empty() {
+                    self.input_chars.extend(read_line().chars());
+                }
+
+                let value = self
+                    .input_chars
+                    .pop_front()
+                    .map_or(Value::from(-1), Into::into);
+                self.push(value);
+            }
             Instruction::Print(s) => print!("{s}"),
         }
 
