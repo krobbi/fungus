@@ -1,3 +1,5 @@
+use std::io::{self, Write};
+
 use crate::{
     common::{Playfield, Value},
     ir::{Exit, Instruction, Label, Program, State, ops::BinOp},
@@ -12,10 +14,13 @@ pub fn interpret_program(program: &Program, playfield: &mut Playfield) -> Option
     loop {
         match interpreter.interpret_block(&label) {
             Flow::Jump(l) => label = l.clone(),
-            Flow::End => return None,
+            Flow::End => break,
             Flow::Recompile(s) => return Some(s),
         }
     }
+
+    flush_stdout();
+    None
 }
 
 /// A high-level interpreter.
@@ -85,7 +90,8 @@ impl<'a> Interpreter<'a> {
                 if rhs.into_i32() != 0 {
                     self.push(BinOp::from(*o).eval(lhs, rhs));
                 } else {
-                    todo!("divide-by-zero error");
+                    print!("What do you want {}{o}0 to be? ", lhs.into_i32());
+                    self.input_int();
                 }
             }
             Instruction::Duplicate => self.push(self.peek()),
@@ -121,12 +127,17 @@ impl<'a> Interpreter<'a> {
                     }
                 }
             }
-            Instruction::InputInt => todo!("input integers"),
+            Instruction::InputInt => self.input_int(),
             Instruction::InputChar => todo!("input characters"),
             Instruction::Print(s) => print!("{s}"),
         }
 
         None
+    }
+
+    /// Parses an integer from a line of user input and pushes it to the stack.
+    fn input_int(&mut self) {
+        self.push(read_line().trim().parse().unwrap_or(-1).into());
     }
 
     /// Returns the top value of the stack.
@@ -155,4 +166,22 @@ enum Flow<'a> {
 
     /// A recompilation at a state.
     Recompile(State),
+}
+
+/// Reads a line of user input.
+fn read_line() -> String {
+    flush_stdout();
+
+    let mut line = String::new();
+    io::stdin()
+        .read_line(&mut line)
+        .expect("reading from stdin should not fail");
+    line
+}
+
+/// Flushes the standard output stream.
+fn flush_stdout() {
+    io::stdout()
+        .flush()
+        .expect("flushing stdout should not fail");
 }
