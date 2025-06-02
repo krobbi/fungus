@@ -12,7 +12,7 @@ differences:
 # Usage
 Fungus is run from the command line:
 ```shell
-fungus <PATH>
+fungus [OPTIONS] <PATH>
 ```
 
 The source source file at `<PATH>` will be loaded and interpreted as a Befunge
@@ -26,10 +26,14 @@ program.
 The source file at `<PATH>` must be formatted as UTF-8.
 
 ## Options
-| Short | Long        | Usage         |
-| :---- | :---------- | :------------ |
-| `-h`  | `--help`    | Print help    |
-| `-V`  | `--version` | Print version |
+| Short | Long        | Usage                 |
+| :---- | :---------- | :-------------------- |
+| `-d`  | `--dump`    | Print pseudo-assembly |
+| `-h`  | `--help`    | Print help            |
+| `-V`  | `--version` | Print version         |
+
+If the `--dump` flag is set, then the program will be printed as
+pseudo-assembly instead of being interpreted.
 
 If the `--help` or `--version` flag is set, then Fungus will print information
 but not perform any action.

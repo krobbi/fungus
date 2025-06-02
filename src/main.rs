@@ -23,21 +23,25 @@ fn main() -> ExitCode {
 
 /// Runs Fungus.
 fn try_run() -> Result<()> {
-    let mut playfield = try_load_playfield()?;
+    let config = Config::try_new()?;
+    let mut playfield = try_load_playfield(config.path())?;
     let mut program = parse::parse_program(&playfield, State::default());
     optimize::optimize_program(&mut program);
 
-    while let Some(state) = interpret::interpret_program(&program, &mut playfield) {
-        program = parse::parse_program(&playfield, state);
+    if config.dump() {
+        println!("{program}");
+    } else {
+        while let Some(state) = interpret::interpret_program(&program, &mut playfield) {
+            program = parse::parse_program(&playfield, state);
+        }
     }
 
     Ok(())
 }
 
-/// Loads a playfield from command line arguments.
-fn try_load_playfield() -> Result<Playfield> {
-    let config = Config::try_new()?;
-    let source = try_read_source(config.path())?;
+/// Loads a playfield from a file path.
+fn try_load_playfield(path: &Path) -> Result<Playfield> {
+    let source = try_read_source(path)?;
     Ok(Playfield::new(&source))
 }
 
