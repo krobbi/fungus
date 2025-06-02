@@ -3,6 +3,7 @@ use std::fmt::{self, Display, Formatter};
 use super::Label;
 
 /// A block's exit.
+#[derive(Clone)]
 pub enum Exit {
     /// An unconditional jump to a block.
     Jump(Label),

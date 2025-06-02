@@ -23,5 +23,6 @@ fn run_pass(graph: &mut Graph, ctx: &mut Context) {
     step::thread_jumps(graph, ctx);
     step::remove_unreachable_blocks(graph, ctx);
     step::replace_instructions(graph, ctx);
+    step::replace_jumps_to_exits(graph, ctx);
     step::optimize_branches(graph, ctx);
 }

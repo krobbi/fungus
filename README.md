@@ -145,8 +145,8 @@ The optimizer repeats this step until no more basic blocks can be merged.
 ### Jump Threading
 When Befunge programs with converging branches are parsed, multiple basic
 blocks can lead into a single basic block containing only an unconditional
-jump. Any labels targeting a basic block with only a jump can be redirected to
-the jump's target.
+jump. Any labels targeting these basic blocks can be redirected to the jump's
+target.
 
 This step affects the macro-scale structure of the program's basic blocks, so
 it is run early, after basic block merging.
@@ -219,6 +219,13 @@ Stack operations (instructions that have stack effects but no side effects) and
 statements (instructions that have side effects but no stack effects) can be
 swapped so that statements come first. This is mostly done to unblock other
 optimizations.
+
+### Jump to Exit Optimization
+Unconditional jumps to basic blocks containing only an exit point can be
+replaced with the exit point if it is more optimal:
+* Program endings are 'lighter' than jumps, so these will always replace them.
+* Conditional branches will replace jumps if the instructions before the jump
+  contribute to branch optimization.
 
 ### Branch Optimization
 If a conditional branch is taken with equal branches or a constant value on the
