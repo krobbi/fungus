@@ -2,7 +2,10 @@ use std::fmt::{self, Display, Formatter};
 
 use crate::common::Value;
 
-use super::ops::{BinOp, DivOp, UnOp};
+use super::{
+    State,
+    ops::{BinOp, DivOp, UnOp},
+};
 
 /// An instruction in a block.
 #[derive(Clone)]
@@ -58,7 +61,7 @@ pub enum Instruction {
     /// An instruction to pop two coordinate values and a stored value from the
     /// stack and store the stored value in the playfield at the coordinates.
     /// `[...][value][x][y]` -> `[...]`
-    Put,
+    Put(State),
 
     /// An instruction to push an integer value to the stack from user input.
     /// `[...]` -> `[...][int]`
@@ -85,7 +88,7 @@ impl Display for Instruction {
             Self::OutputInt => "outint",
             Self::OutputChar => "outchar",
             Self::Get => "get",
-            Self::Put => "put",
+            Self::Put(s) => return write!(f, "{:8}{s}", "put"),
             Self::InputInt => "inint",
             Self::InputChar => "inchar",
             Self::Print(s) => return write!(f, "{:8}\"{}\"", "print", s.escape_default()),

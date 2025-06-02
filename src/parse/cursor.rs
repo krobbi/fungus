@@ -88,3 +88,9 @@ impl From<Cursor<'_>> for Label {
         Self::State(value.state)
     }
 }
+
+impl From<Cursor<'_>> for State {
+    fn from(value: Cursor<'_>) -> Self {
+        value.state
+    }
+}

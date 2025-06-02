@@ -234,31 +234,20 @@ replaced with anunconditional jump. If a conditional branch follows a not
 instruction (`!`), then the not instruction can be removed and the branches can
 be swapped.
 
-<!--
-# The Hard Part
-Compiling a program hits a roadblock when it comes to the nasty `g` command,
-and the even nastier `p` command. These commands get and put characters to and
-from the playfield. This means that Befunge programs can not only read their
-own source code, but modify themselves at runtime.
+# Self-Modifying Code
+Befunge can get values from the playfield with the `g` command and put values
+to the playfield with the `p` command. The program counter should respond to
+these changes, meaning that Befunge supports self-modifying code.
 
-Thanks to peephole optimization, some `g` and `p` commands can be associated
-with constant positions. If only constant positions are used and the program
-can never modify itself, then the commands can be simplified to accessing
-static variables and the playfield can be discarded. This optimization has not
-been implemented.
+In practice, self-modifying code is usually avoided and the playfield is used
+for storing static variables. Fungus could check for constant arguments to `p`
+commands and use an alternative method for accessing static variables if the
+executable area of the playfield is never modified.
 
-During compilation, it is possible to keep track of which positions in the
-playfield may be executed as code, and which can never be reached. If a `p`
-command writes to an arbitrary position, or a constant position in the code,
-then the program may be self-modifying.
-
-If a `p` command is self-modifying, then the program will need to be recompiled
-after the write, with the entry point after the command. This is unimplemented,
-so an error for self-modifying code is thrown instead.
-
-This analysis depends on the optimization stage, so it should be a separate
-stage after optimization.
--->
+There are plans to create a lower level representation of the program that does
+not support self-modification, but this is not yet implemented. Fungus supports
+the worst-case scenario by recompiling the program every time a `p` command is
+executed.
 
 # Credits
 Fungus uses the following libraries:

@@ -83,7 +83,7 @@ fn parse_block(cursor: Cursor) -> Block {
         (Mode::Command, ',') => Instruction::OutputChar.into_block(cursor),
         (Mode::Command, '#') => cursor.step().step().into(),
         (Mode::Command, 'g') => Instruction::Get.into_block(cursor),
-        (Mode::Command, 'p') => Instruction::Put.into_block(cursor),
+        (Mode::Command, 'p') => put(cursor),
         (Mode::Command, '&') => Instruction::InputInt.into_block(cursor),
         (Mode::Command, '~') => Instruction::InputChar.into_block(cursor),
         (Mode::Command, '@') => Exit::End.into_block(),
@@ -126,6 +126,15 @@ fn branch(then_direction: Direction, else_direction: Direction, cursor: Cursor) 
     let then_label = cursor.clone().go(then_direction).into();
     let else_label = cursor.go(else_direction).into();
     Exit::Branch(then_label, else_label).into_block()
+}
+
+/// Creates a new put block from a cursor.
+fn put(cursor: Cursor) -> Block {
+    let state: State = cursor.step().into();
+    Block {
+        instructions: vec![Instruction::Put(state.clone())],
+        exit: Exit::Jump(Label::State(state)),
+    }
 }
 
 impl Instruction {
