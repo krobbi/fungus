@@ -1,5 +1,5 @@
 /// A Befunge value.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct Value {
     /// The inner value.
     value: i32,

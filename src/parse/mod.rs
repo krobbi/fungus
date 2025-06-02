@@ -13,13 +13,11 @@ use crate::{
     },
 };
 
-/// Parses a program from a playfield.
-pub fn parse_program(playfield: &Playfield) -> Program {
+/// Parses a program from a playfield and a main state.
+pub fn parse_program(playfield: &Playfield, main_state: State) -> Program {
     let mut program = Program {
         blocks: BTreeMap::new(),
     };
-
-    let main_state = State::default();
     program.blocks.insert(
         Label::Main,
         Exit::Jump(Label::State(main_state.clone())).into_block(),

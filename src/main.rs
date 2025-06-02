@@ -1,6 +1,7 @@
 mod common;
 mod config;
 mod error;
+mod interpret;
 mod ir;
 mod optimize;
 mod parse;
@@ -10,6 +11,7 @@ use std::{fs, path::Path, process::ExitCode};
 use common::Playfield;
 use config::Config;
 use error::{Error, Result};
+use ir::State;
 
 /// Runs Fungus and returns an exit code.
 fn main() -> ExitCode {
@@ -21,10 +23,14 @@ fn main() -> ExitCode {
 
 /// Runs Fungus.
 fn try_run() -> Result<()> {
-    let playfield = try_load_playfield()?;
-    let mut program = parse::parse_program(&playfield);
+    let mut playfield = try_load_playfield()?;
+    let mut program = parse::parse_program(&playfield, State::default());
     optimize::optimize_program(&mut program);
-    println!("{program}");
+
+    while let Some(state) = interpret::interpret_program(&program, &mut playfield) {
+        program = parse::parse_program(&playfield, state);
+    }
+
     Ok(())
 }
 

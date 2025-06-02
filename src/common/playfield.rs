@@ -1,3 +1,5 @@
+use std::mem;
+
 use super::Value;
 
 /// A Befunge playfield.
@@ -46,6 +48,17 @@ impl Playfield {
     pub fn get(&self, x: usize, y: usize) -> Option<Value> {
         if x < self.width {
             self.cells.get(x + y * self.width).copied()
+        } else {
+            None
+        }
+    }
+
+    /// Puts a value at a position in cells and returns the previous value.
+    /// Returns `None` if the position is out of bounds.
+    pub fn put(&mut self, x: usize, y: usize, value: Value) -> Option<Value> {
+        if x < self.width {
+            let cell = self.cells.get_mut(x + y * self.width)?;
+            Some(mem::replace(cell, value))
         } else {
             None
         }

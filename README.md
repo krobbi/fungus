@@ -252,6 +252,8 @@ executed.
 # Credits
 Fungus uses the following libraries:
 * [clap](https://crates.io/crates/clap) - Command line argument parsing.
+* [rand](https://crates.io/crates/rand) - Randomness for interpreting the `?`
+  command.
 
 The following resources were helpful for implementing Fungus:
 * [Befunge Esolang Page](https://esolangs.org/wiki/Befunge)
