@@ -1,8 +1,10 @@
 mod cursor;
+mod flow_graph;
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use cursor::Cursor;
+use flow_graph::FlowGraph;
 
 use crate::{
     common::Playfield,
@@ -28,6 +30,7 @@ pub fn parse_program_state(playfield: &Playfield, main_state: State) -> Program 
         Exit::Jump(Label::State(main_state.clone())).into_block(),
     );
 
+    let mut flow_graph = FlowGraph::new(main_state.position());
     let mut unexplored_states = BTreeSet::new();
     unexplored_states.insert(main_state);
 
@@ -37,12 +40,19 @@ pub fn parse_program_state(playfield: &Playfield, main_state: State) -> Program 
             continue;
         }
 
+        let position = state.position();
         let cursor = Cursor::new(playfield, state);
         let block = parse_block(cursor);
-        unexplored_states.extend(block.exit.states().cloned());
+
+        for unexplored_state in block.exit.states() {
+            flow_graph.insert_connection(position, unexplored_state.position());
+            unexplored_states.insert(unexplored_state.clone());
+        }
+
         program.blocks.insert(label, block);
     }
 
+    flow_graph.dump();
     program
 }
 

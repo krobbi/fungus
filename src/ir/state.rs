@@ -19,6 +19,13 @@ pub struct State {
     pub direction: Direction,
 }
 
+impl State {
+    /// Returns the position.
+    pub fn position(&self) -> (usize, usize) {
+        (self.x, self.y)
+    }
+}
+
 impl Display for State {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(
