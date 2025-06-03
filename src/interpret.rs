@@ -5,32 +5,17 @@ use std::{
 
 use crate::{
     common::{Playfield, Value},
-    ir::{Exit, Instruction, Label, Program, State, ops::BinOp},
+    ir::{Block, Exit, Instruction, Label, Program, State, ops::BinOp},
+    parse,
 };
 
-/// Interprets a program with a playfield and returns the state to recompile the
-/// program from. Returns `None` if the program has ended.
-pub fn interpret_program(program: &Program, playfield: &mut Playfield) -> Option<State> {
-    let mut interpreter = Interpreter::new(program, playfield);
-    let mut label = Label::Main;
-
-    loop {
-        match interpreter.interpret_block(&label) {
-            Flow::Jump(l) => label = l.clone(),
-            Flow::End => break,
-            Flow::Recompile(s) => return Some(s),
-        }
-    }
-
-    flush_stdout();
-    None
+/// Interprets a program with a playfield.
+pub fn interpret_program(program: &Program, playfield: &mut Playfield) {
+    Interpreter::new(playfield).interpret_program(program);
 }
 
-/// A high-level interpreter.
+/// A high-level interpreter for potentially self-modifying programs.
 struct Interpreter<'a> {
-    /// The program.
-    program: &'a Program,
-
     /// The playfield.
     playfield: &'a mut Playfield,
 
@@ -41,22 +26,39 @@ struct Interpreter<'a> {
     input_chars: VecDeque<char>,
 }
 
-impl<'a> Interpreter<'a> {
-    /// Creates a new interpreter from a program and a playfield.
-    fn new(program: &'a Program, playfield: &'a mut Playfield) -> Self {
+impl<'a, 'b> Interpreter<'a> {
+    /// Creates a new interpreter from a playfield.
+    fn new(playfield: &'a mut Playfield) -> Self {
         Self {
-            program,
             playfield,
             stack: Vec::new(),
             input_chars: VecDeque::new(),
         }
     }
 
-    /// Interprets a block from a label and returns the control flow from the
-    /// block.
-    fn interpret_block(&mut self, label: &Label) -> Flow {
-        let block = &self.program.blocks[label];
+    /// Interprets a program.
+    fn interpret_program(&mut self, program: &Program) {
+        let mut program = program;
+        let mut recompiled_program;
+        let mut label = Label::Main;
 
+        loop {
+            match self.interpret_block(&program.blocks[&label]) {
+                Flow::Jump(l) => label = l.clone(),
+                Flow::Recompile(s) => {
+                    recompiled_program = parse::parse_program_state(self.playfield, s.clone());
+                    program = &recompiled_program;
+                    label = Label::Main;
+                }
+                Flow::End => break,
+            }
+        }
+
+        flush_output();
+    }
+
+    /// Interprets a block and returns the control flow from the block.
+    fn interpret_block(&mut self, block: &'b Block) -> Flow<'b> {
         for instruction in &block.instructions {
             if let Some(state) = self.interpret_instruction(instruction) {
                 return Flow::Recompile(state);
@@ -79,7 +81,7 @@ impl<'a> Interpreter<'a> {
 
     /// Interprets an instruction and returns the state to recompile the program
     /// from. Returns `None` if the program should not be recompiled.
-    fn interpret_instruction(&mut self, instruction: &Instruction) -> Option<State> {
+    fn interpret_instruction(&mut self, instruction: &'b Instruction) -> Option<&'b State> {
         match instruction {
             Instruction::Push(v) => self.push(*v),
             Instruction::Unary(o) => {
@@ -129,7 +131,7 @@ impl<'a> Interpreter<'a> {
                 if let (Ok(x), Ok(y)) = (usize::try_from(x), usize::try_from(y)) {
                     if let Some(previous_value) = self.playfield.put(x, y, value) {
                         if previous_value.into_i32() != value.into_i32() {
-                            return Some(s.clone());
+                            return Some(s);
                         }
                     }
                 }
@@ -178,16 +180,16 @@ enum Flow<'a> {
     /// A jump to another label.
     Jump(&'a Label),
 
+    /// A recompilation at a state.
+    Recompile(&'a State),
+
     /// A program ending.
     End,
-
-    /// A recompilation at a state.
-    Recompile(State),
 }
 
 /// Reads a line of user input.
 fn read_line() -> String {
-    flush_stdout();
+    flush_output();
 
     let mut line = String::new();
     io::stdin()
@@ -197,7 +199,7 @@ fn read_line() -> String {
 }
 
 /// Flushes the standard output stream.
-fn flush_stdout() {
+fn flush_output() {
     io::stdout()
         .flush()
         .expect("flushing stdout should not fail");

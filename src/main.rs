@@ -11,7 +11,6 @@ use std::{fs, path::Path, process::ExitCode};
 use common::Playfield;
 use config::Config;
 use error::{Error, Result};
-use ir::State;
 
 /// Runs Fungus and returns an exit code.
 fn main() -> ExitCode {
@@ -25,15 +24,13 @@ fn main() -> ExitCode {
 fn try_run() -> Result<()> {
     let config = Config::try_new()?;
     let mut playfield = try_load_playfield(config.path())?;
-    let mut program = parse::parse_program(&playfield, State::default());
+    let mut program = parse::parse_program(&playfield);
     optimize::optimize_program(&mut program);
 
     if config.dump() {
         println!("{program}");
     } else {
-        while let Some(state) = interpret::interpret_program(&program, &mut playfield) {
-            program = parse::parse_program(&playfield, state);
-        }
+        interpret::interpret_program(&program, &mut playfield);
     }
 
     Ok(())

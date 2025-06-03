@@ -72,15 +72,3 @@ impl<'a> Graph<'a> {
             .expect("label should exist")
     }
 }
-
-impl Exit {
-    /// Converts the exit to a boxed slice of labels.
-    fn to_labels(&self) -> Box<[&Label]> {
-        match self {
-            Self::Jump(l) => Box::new([l]),
-            Self::Random(r, d, l, u) => Box::new([r, d, l, u]),
-            Self::Branch(t, e) => Box::new([t, e]),
-            Self::End => Box::new([]),
-        }
-    }
-}

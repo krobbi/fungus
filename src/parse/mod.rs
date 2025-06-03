@@ -13,8 +13,13 @@ use crate::{
     },
 };
 
+/// Parses a program from a playfield.
+pub fn parse_program(playfield: &Playfield) -> Program {
+    parse_program_state(playfield, State::default())
+}
+
 /// Parses a program from a playfield and a main state.
-pub fn parse_program(playfield: &Playfield, main_state: State) -> Program {
+pub fn parse_program_state(playfield: &Playfield, main_state: State) -> Program {
     let mut program = Program {
         blocks: BTreeMap::new(),
     };
@@ -34,11 +39,7 @@ pub fn parse_program(playfield: &Playfield, main_state: State) -> Program {
 
         let cursor = Cursor::new(playfield, state);
         let block = parse_block(cursor);
-
-        for state in block.exit.to_states() {
-            unexplored_states.insert(state);
-        }
-
+        unexplored_states.extend(block.exit.states().cloned());
         program.blocks.insert(label, block);
     }
 
@@ -153,29 +154,19 @@ impl Exit {
         }
     }
 
-    /// Converts the exit to a vector of states.
-    fn to_states(&self) -> Vec<State> {
-        match self {
-            Self::Jump(l) => l.to_state().into_iter().collect(),
-            Self::Random(r, d, l, u) => r
-                .to_state()
-                .into_iter()
-                .chain(d.to_state())
-                .chain(l.to_state())
-                .chain(u.to_state())
-                .collect(),
-            Self::Branch(t, e) => t.to_state().into_iter().chain(e.to_state()).collect(),
-            Self::End => Vec::new(),
-        }
+    /// Returns an iterator over the states.
+    fn states(&self) -> impl Iterator<Item = &State> {
+        self.to_labels().into_iter().filter_map(Label::to_state)
     }
 }
 
 impl Label {
-    /// Converts the label to an optional state.
-    fn to_state(&self) -> Option<State> {
+    /// Converts the label to a state. Returns `None` if the label does not have
+    /// a state.
+    fn to_state(&self) -> Option<&State> {
         match self {
             Self::Main => None,
-            Self::State(s) => Some(s.clone()),
+            Self::State(s) => Some(s),
         }
     }
 }
