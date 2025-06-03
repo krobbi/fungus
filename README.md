@@ -243,15 +243,16 @@ Befunge can get values from the playfield with the `g` command and put values
 to the playfield with the `p` command. The program counter should respond to
 these changes, meaning that Befunge supports self-modifying code.
 
-In practice, self-modifying code is usually avoided and the playfield is used
-for storing static variables. Fungus could check for constant arguments to `p`
-commands and use an alternative method for accessing static variables if the
-executable area of the playfield is never modified.
+In practice, self-modifying code is avoided and the playfield is used for
+storing static variables. Fungus checks for constant position arguments to `g`
+and `p` commands and verifies that changes made by `p` commands can't later be
+reached by the program counter. If a `p` command is self-modifying, then Fungus
+supports the worst-case scenario by recompiling the program at the state
+following the `p` command.
 
-There are plans to create a lower level representation of the program that does
-not support self-modification, but this is not yet implemented. Fungus supports
-the worst-case scenario by recompiling the program every time a `p` command is
-executed.
+There are plans to create a lower-level representation of the program that only
+accepts constant positions for `g` and `p` commands and reduces them to static
+variables, but this is not yet implemented.
 
 # Credits
 Fungus uses the following libraries:
