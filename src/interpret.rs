@@ -154,6 +154,10 @@ impl<'a, 'b> Interpreter<'a> {
                     .get(*x, *y)
                     .expect("position should be in bounds"),
             ),
+            Instruction::PutAt(x, y) => {
+                let value = self.pop();
+                self.playfield.put(*x, *y, value);
+            }
         }
 
         None

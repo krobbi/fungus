@@ -1,4 +1,4 @@
-use crate::{common::Playfield, parse::FlowGraph};
+use crate::{common::Playfield, ir::State, parse::FlowGraph};
 
 /// Context for optimizing a program.
 pub struct Context<'a> {
@@ -6,7 +6,7 @@ pub struct Context<'a> {
     should_run_pass: bool,
 
     /// The flow graph.
-    _flow_graph: &'a FlowGraph,
+    flow_graph: &'a FlowGraph,
 
     /// The playfield.
     playfield: &'a Playfield,
@@ -17,7 +17,7 @@ impl<'a> Context<'a> {
     pub fn new(flow_graph: &'a FlowGraph, playfield: &'a Playfield) -> Self {
         Self {
             should_run_pass: true,
-            _flow_graph: flow_graph,
+            flow_graph,
             playfield,
         }
     }
@@ -42,5 +42,12 @@ impl<'a> Context<'a> {
     pub fn is_in_bounds(&self, x: usize, y: usize) -> bool {
         let (width, height) = self.playfield.bounds();
         x < width && y < height
+    }
+
+    /// Returns whether a target position in cells is reachable from a source
+    /// state.
+    pub fn is_reachable(&self, source: &State, target_x: usize, target_y: usize) -> bool {
+        self.flow_graph
+            .is_reachable(source.position(), (target_x, target_y))
     }
 }

@@ -76,7 +76,13 @@ pub enum Instruction {
 
     /// An instruction to push a value from the playfield at known, in-bounds
     /// coordinates to the stack.
+    /// `[...]` -> `[...][value]`
     GetAt(usize, usize),
+
+    /// An instruction to pop a value from the stack and store it in the
+    /// playfield at known, in-bounds, non-modifying coordinates.
+    /// `[...][value]` -> `[...]`
+    PutAt(usize, usize),
 }
 
 impl Display for Instruction {
@@ -97,6 +103,7 @@ impl Display for Instruction {
             Self::InputChar => "inchar",
             Self::Print(s) => return write!(f, "{:8}\"{}\"", "print", s.escape_default()),
             Self::GetAt(x, y) => return write!(f, "{:8}{x}, {y}", "getat"),
+            Self::PutAt(x, y) => return write!(f, "{:8}{x}, {y}", "putat"),
         };
         f.write_str(data)
     }

@@ -24,9 +24,8 @@ impl FlowGraph {
         self.connections.entry(target).or_default();
     }
 
-    /// Returns whether a target position can be reached from a source position.
-    #[expect(dead_code, reason = "will be used in a future version")]
-    pub fn can_reach(&self, source: (usize, usize), target: (usize, usize)) -> bool {
+    /// Returns whether a target position is reachable from a source position.
+    pub fn is_reachable(&self, source: (usize, usize), target: (usize, usize)) -> bool {
         assert!(self.connections.contains_key(&source));
         if !self.connections.contains_key(&target) {
             return false;

@@ -40,7 +40,8 @@ fn optimize_peepholes(instructions: &mut Vec<Instruction>, window_size: usize, c
 /// optimization could be made.
 fn optimize_peephole(peephole: &[Instruction], ctx: &Context) -> Option<Vec<Instruction>> {
     use Instruction::{
-        Binary, Divide, Duplicate, Get, GetAt, OutputChar, OutputInt, Pop, Print, Push, Swap, Unary,
+        Binary, Divide, Duplicate, Get, GetAt, OutputChar, OutputInt, Pop, Print, Push, Put, PutAt,
+        Swap, Unary,
     };
 
     let peephole = match peephole {
@@ -51,6 +52,18 @@ fn optimize_peephole(peephole: &[Instruction], ctx: &Context) -> Option<Vec<Inst
                 }
             }
             vec![Push(Value::default())]
+        }
+        [Push(x), Push(y), Put(s)] => {
+            if let (Ok(x), Ok(y)) = (usize::try_from(x.into_i32()), usize::try_from(y.into_i32())) {
+                if ctx.is_in_bounds(x, y) {
+                    return if ctx.is_reachable(s, x, y) {
+                        None
+                    } else {
+                        Some(vec![PutAt(x, y)])
+                    };
+                }
+            }
+            vec![Pop]
         }
         [Push(l), Push(r), Binary(o)] => vec![Push(o.eval(*l, *r))],
         [Push(a), Push(b), Swap] => vec![Push(*b), Push(*a)],
@@ -64,6 +77,8 @@ fn optimize_peephole(peephole: &[Instruction], ctx: &Context) -> Option<Vec<Inst
         [Binary(_) | Get, Pop] => vec![Pop, Pop],
         [Duplicate, Swap] => vec![Duplicate],
         [Print(a), Print(b)] => vec![Print(a.clone() + b)],
+        [GetAt(gx, gy), PutAt(px, py)] if gx == px && gy == py => vec![],
+        [PutAt(px, py), GetAt(gx, gy)] if px == gx && py == gy => vec![Duplicate, PutAt(*px, *py)],
         [a, b] if a.is_stack_operation() && b.is_statement() => vec![b.clone(), a.clone()],
         _ => return None,
     };
