@@ -1,14 +1,24 @@
+use crate::{common::Playfield, parse::FlowGraph};
+
 /// Context for optimizing a program.
-pub struct Context {
+pub struct Context<'a> {
     /// Whether an optimization pass should be run.
     should_run_pass: bool,
+
+    /// The flow graph.
+    _flow_graph: &'a FlowGraph,
+
+    /// The playfield.
+    playfield: &'a Playfield,
 }
 
-impl Context {
-    /// Creates a new context.
-    pub fn new() -> Self {
+impl<'a> Context<'a> {
+    /// Creates a new context from a flow graph and a playfield.
+    pub fn new(flow_graph: &'a FlowGraph, playfield: &'a Playfield) -> Self {
         Self {
             should_run_pass: true,
+            _flow_graph: flow_graph,
+            playfield,
         }
     }
 
@@ -26,5 +36,11 @@ impl Context {
     pub fn mark_change(&mut self) {
         // Changes were made, so more optimization passes should be run.
         self.should_run_pass = true;
+    }
+
+    /// Returns whether a position in cells is in bounds of the playfield.
+    pub fn is_in_bounds(&self, x: usize, y: usize) -> bool {
+        let (width, height) = self.playfield.bounds();
+        x < width && y < height
     }
 }

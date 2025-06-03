@@ -24,8 +24,8 @@ fn main() -> ExitCode {
 fn try_run() -> Result<()> {
     let config = Config::try_new()?;
     let mut playfield = try_load_playfield(config.path())?;
-    let mut program = parse::parse_program(&playfield);
-    optimize::optimize_program(&mut program);
+    let (mut program, flow_graph) = parse::parse_program(&playfield);
+    optimize::optimize_program(&mut program, &flow_graph, &playfield);
 
     if config.dump() {
         println!("{program}");

@@ -73,6 +73,10 @@ pub enum Instruction {
 
     /// An instruction to output a string with no stack effect.
     Print(String),
+
+    /// An instruction to push a value from the playfield at known, in-bounds
+    /// coordinates to the stack.
+    GetAt(usize, usize),
 }
 
 impl Display for Instruction {
@@ -92,6 +96,7 @@ impl Display for Instruction {
             Self::InputInt => "inint",
             Self::InputChar => "inchar",
             Self::Print(s) => return write!(f, "{:8}\"{}\"", "print", s.escape_default()),
+            Self::GetAt(x, y) => return write!(f, "{:8}{x}, {y}", "getat"),
         };
         f.write_str(data)
     }

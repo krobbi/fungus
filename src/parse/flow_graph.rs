@@ -50,16 +50,4 @@ impl FlowGraph {
 
         false
     }
-
-    /// Dumps the connections for debugging purposes.
-    pub fn dump(&self) {
-        for (source, targets) in &self.connections {
-            for target in targets {
-                eprintln!(
-                    "({}, {}) -> ({}, {})",
-                    source.0, source.1, target.0, target.1
-                );
-            }
-        }
-    }
 }

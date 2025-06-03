@@ -1,10 +1,11 @@
 mod cursor;
 mod flow_graph;
 
+pub use flow_graph::FlowGraph;
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use cursor::Cursor;
-use flow_graph::FlowGraph;
 
 use crate::{
     common::Playfield,
@@ -15,13 +16,13 @@ use crate::{
     },
 };
 
-/// Parses a program from a playfield.
-pub fn parse_program(playfield: &Playfield) -> Program {
+/// Parses a program and a flow graph from a playfield.
+pub fn parse_program(playfield: &Playfield) -> (Program, FlowGraph) {
     parse_program_state(playfield, State::default())
 }
 
-/// Parses a program from a playfield and a main state.
-pub fn parse_program_state(playfield: &Playfield, main_state: State) -> Program {
+/// Parses a program and a flow graph from a playfield and a main state.
+pub fn parse_program_state(playfield: &Playfield, main_state: State) -> (Program, FlowGraph) {
     let mut program = Program {
         blocks: BTreeMap::new(),
     };
@@ -52,8 +53,7 @@ pub fn parse_program_state(playfield: &Playfield, main_state: State) -> Program 
         program.blocks.insert(label, block);
     }
 
-    flow_graph.dump();
-    program
+    (program, flow_graph)
 }
 
 /// Parses a block from a cursor.

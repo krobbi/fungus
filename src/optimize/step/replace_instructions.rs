@@ -1,4 +1,5 @@
 use crate::{
+    common::Value,
     ir::Instruction,
     optimize::{context::Context, graph::Graph},
 };
@@ -22,7 +23,7 @@ fn optimize_peepholes(instructions: &mut Vec<Instruction>, window_size: usize, c
             return;
         };
 
-        if let Some(peephole) = optimize_peephole(peephole) {
+        if let Some(peephole) = optimize_peephole(peephole, ctx) {
             instructions.splice(range, peephole);
             ctx.mark_change();
 
@@ -37,18 +38,26 @@ fn optimize_peepholes(instructions: &mut Vec<Instruction>, window_size: usize, c
 
 /// Returns an optimized equivalent of a peephole. Returns `None` if no
 /// optimization could be made.
-fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
+fn optimize_peephole(peephole: &[Instruction], ctx: &Context) -> Option<Vec<Instruction>> {
     use Instruction::{
-        Binary, Divide, Duplicate, Get, OutputChar, OutputInt, Pop, Print, Push, Swap, Unary,
+        Binary, Divide, Duplicate, Get, GetAt, OutputChar, OutputInt, Pop, Print, Push, Swap, Unary,
     };
 
     let peephole = match peephole {
+        [Push(x), Push(y), Get] => {
+            if let (Ok(x), Ok(y)) = (usize::try_from(x.into_i32()), usize::try_from(y.into_i32())) {
+                if ctx.is_in_bounds(x, y) {
+                    return Some(vec![GetAt(x, y)]);
+                }
+            }
+            vec![Push(Value::default())]
+        }
         [Push(l), Push(r), Binary(o)] => vec![Push(o.eval(*l, *r))],
         [Push(a), Push(b), Swap] => vec![Push(*b), Push(*a)],
         [Push(r), Unary(o)] => vec![Push(o.eval(*r))],
         [Push(r), Divide(o)] if r.into_i32() != 0 => vec![Push(*r), Binary((*o).into())],
         [Push(v), Duplicate] => vec![Push(*v), Push(*v)],
-        [Push(_) | Duplicate, Pop] | [Swap, Swap] => Vec::new(),
+        [Push(_) | Duplicate | GetAt(_, _), Pop] | [Swap, Swap] => Vec::new(),
         [Push(v), OutputInt] => vec![Print(v.into_i32().to_string() + " ")],
         [Push(v), OutputChar] => vec![Print(v.into_char_lossy().into())],
         [Unary(_), Pop] => vec![Pop],
@@ -73,6 +82,7 @@ impl Instruction {
                 | Self::Swap
                 | Self::Pop
                 | Self::Get
+                | Self::GetAt(_, _)
         )
     }
 

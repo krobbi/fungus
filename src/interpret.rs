@@ -46,7 +46,7 @@ impl<'a, 'b> Interpreter<'a> {
             match self.interpret_block(&program.blocks[&label]) {
                 Flow::Jump(l) => label = l.clone(),
                 Flow::Recompile(s) => {
-                    recompiled_program = parse::parse_program_state(self.playfield, s.clone());
+                    recompiled_program = parse::parse_program_state(self.playfield, s.clone()).0;
                     program = &recompiled_program;
                     label = Label::Main;
                 }
@@ -149,6 +149,11 @@ impl<'a, 'b> Interpreter<'a> {
                 self.push(value);
             }
             Instruction::Print(s) => print!("{s}"),
+            Instruction::GetAt(x, y) => self.push(
+                self.playfield
+                    .get(*x, *y)
+                    .expect("position should be in bounds"),
+            ),
         }
 
         None
