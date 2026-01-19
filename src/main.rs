@@ -26,7 +26,7 @@ fn main() -> ExitCode {
 fn try_run() -> Result<(), FungusError> {
     let config = Config::try_new()?;
     let source = try_read_source(config.source_path())?;
-    let mut playfield = Playfield::new(&source);
+    let mut playfield = Playfield::try_new(&source)?;
     let (mut program, flow_graph) = parse::parse_program(&playfield);
     optimize::optimize_program(&mut program, &flow_graph, &playfield);
 

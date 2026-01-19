@@ -21,6 +21,11 @@ pub enum FungusError {
     /// An [`io::Error`] caught while reading the source file.
     #[error("could not read source file '{0}': {1}")]
     SourceFileRead(PathBuf, #[source] io::Error),
+
+    /// An error caused by the source code being too large to fit on a
+    /// [`Playfield`][crate::playfield::Playfield].
+    #[error("source code is larger than 65,535x65,535 characters")]
+    SourceTooLarge,
 }
 
 impl FungusError {
