@@ -1,31 +1,25 @@
 # Fungus
-Fungus is a [Befunge](https://esolangs.org/wiki/Befunge) interpreter that
+Fungus is a [Befunge](https://esolangs.org/wiki/Befunge) interpreter which
 accelerates runtime performance with a parsing and optimization stage.
 
-Fungus mostly targets the original Befunge-93 specification with some
-differences:
-* The playfield may be an arbitrary size.
-* The values stored in the playfield are signed integers and are not limited to
-  being valid characters.
-* Characters are represented as Unicode scalar values, not ASCII characters.
-
-# Usage
+## Usage
 Fungus is run from the command line:
 ```shell
 fungus [OPTIONS] <PATH>
 ```
 
-The source source file at `<PATH>` will be loaded and interpreted as a Befunge
+The source file at `<PATH>` will be loaded and interpreted as a Befunge
 program.
 
-## Arguments
+### Arguments
 | Argument | Usage            |
 | :------- | :--------------- |
 | `<PATH>` | Source file path |
 
-The source file at `<PATH>` must be formatted as UTF-8.
+A positional argument is expected for the path to the Befunge source file. The
+source file must be formatted as UTF-8.
 
-## Options
+### Options
 | Short | Long        | Usage                 |
 | :---- | :---------- | :-------------------- |
 | `-d`  | `--dump`    | Print pseudo-assembly |
@@ -35,9 +29,10 @@ The source file at `<PATH>` must be formatted as UTF-8.
 If the `--dump` flag is set, then the program will be printed as
 pseudo-assembly instead of being interpreted.
 
-If the `--help` or `--version` flag is set, then Fungus will print information
-but not perform any action.
+If the `--help` or `--version` flag is set, then information will be printed
+but no action will be performed.
 
+<!--
 # About Befunge
 Befunge is an esoteric programming language that is intentionally designed to
 be difficult to compile:
@@ -253,22 +248,23 @@ following the `p` command.
 There are plans to create a lower-level representation of the program that only
 accepts constant positions for `g` and `p` commands and reduces them to static
 variables, but this is not yet implemented.
+-->
 
-# Credits
-Fungus uses the following libraries:
-* [clap](https://crates.io/crates/clap) - Command line argument parsing.
+## Dependencies
+These libraries are used:
+* [clap](https://crates.io/crates/clap) - Command line argument parsing
 * [rand](https://crates.io/crates/rand) - Randomness for interpreting the `?`
-  command.
+  command
 
-The following resources were helpful for implementing Fungus:
+## Credits
+These resources were used for implementation and testing:
 * [Befunge Esolang Page](https://esolangs.org/wiki/Befunge)
 * [Befunge-93 Specification](https://catseye.tc/view/Befunge-93/doc/Befunge-93.markdown)
 * [Funge-98 Specification](https://catseye.tc/view/Funge-98/doc/funge98.markdown)
-  \- Funge-98 is not implemented by Fungus, but it is a superset of Befunge-93
-  with a more detailed specification.
+  \- Funge-98 is not implemented by Fungus, but it has a more detailed
+  specification.
 * [BedroomLan Befunge Interpreter](https://www.bedroomlan.org/tools/befunge-playground/)
-  \- Not fully compliant with Befunge-93, but useful for testing.
 
-# License
-Fungus is released under the MIT License. See [LICENSE.txt](/LICENSE.txt) for a
+## License
+Fungus is released under the MIT License. See [LICENSE.txt](LICENSE.txt) for a
 full copy of the license text.
