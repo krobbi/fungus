@@ -1,14 +1,15 @@
-mod common;
 mod config;
 mod fungus_error;
 mod interpret;
 mod ir;
 mod optimize;
 mod parse;
+mod playfield;
+mod value;
 
 use std::{fs, path::Path, process::ExitCode};
 
-use crate::{common::Playfield, config::Config, fungus_error::FungusError};
+use crate::{config::Config, fungus_error::FungusError, playfield::Playfield};
 
 /// Runs Fungus and returns an [`ExitCode`].
 fn main() -> ExitCode {

@@ -1,7 +1,7 @@
 use crate::{
-    common::Value,
     ir::Instruction,
     optimize::{context::Context, graph::Graph},
+    value::Value,
 };
 
 /// Performs peephole optimization to replace instructions with more optimal

@@ -1,6 +1,6 @@
 use std::mem;
 
-use super::Value;
+use crate::value::Value;
 
 /// A Befunge playfield.
 pub struct Playfield {

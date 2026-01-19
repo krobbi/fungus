@@ -5,7 +5,7 @@ mod step;
 use context::Context;
 use graph::Graph;
 
-use crate::{common::Playfield, ir::Program, parse::FlowGraph};
+use crate::{ir::Program, parse::FlowGraph, playfield::Playfield};
 
 /// Optimizes a program with a flow graph and a playfield.
 pub fn optimize_program(program: &mut Program, flow_graph: &FlowGraph, playfield: &Playfield) {

@@ -1,6 +1,6 @@
 use std::fmt::{self, Display, Formatter};
 
-use crate::common::Value;
+use crate::value::Value;
 
 /// A pure unary operator.
 #[derive(Clone, Copy)]

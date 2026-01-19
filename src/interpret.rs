@@ -4,9 +4,10 @@ use std::{
 };
 
 use crate::{
-    common::{Playfield, Value},
     ir::{Block, Exit, Instruction, Label, Program, State, ops::BinOp},
     parse,
+    playfield::Playfield,
+    value::Value,
 };
 
 /// Interprets a program with a playfield.

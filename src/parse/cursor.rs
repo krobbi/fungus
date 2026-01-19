@@ -1,9 +1,10 @@
 use crate::{
-    common::{Playfield, Value},
     ir::{
         Block, Exit, Label, State,
         state::{Direction, Mode},
     },
+    playfield::Playfield,
+    value::Value,
 };
 
 /// A state bound to a playfield.

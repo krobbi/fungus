@@ -8,12 +8,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use cursor::Cursor;
 
 use crate::{
-    common::Playfield,
     ir::{
         Block, Exit, Instruction, Label, Program, State,
         ops::{BinOp, DivOp, UnOp},
         state::{Direction, Mode},
     },
+    playfield::Playfield,
 };
 
 /// Parses a program and a flow graph from a playfield.

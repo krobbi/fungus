@@ -1,4 +1,4 @@
-use crate::{common::Playfield, ir::State, parse::FlowGraph};
+use crate::{ir::State, parse::FlowGraph, playfield::Playfield};
 
 /// Context for optimizing a program.
 pub struct Context<'a> {
