@@ -88,7 +88,7 @@ pub enum Instruction {
 impl Display for Instruction {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let data = match self {
-            Self::Push(v) => return write!(f, "{:8}{}", "push", v.into_i32()),
+            Self::Push(v) => return write!(f, "{:8}{v}", "push"),
             Self::Unary(o) => return write!(f, "{:8}{o}", "unary"),
             Self::Binary(o) => return write!(f, "{:8}{o}", "binary"),
             Self::Divide(o) => return write!(f, "{:8}{o}", "divide"),

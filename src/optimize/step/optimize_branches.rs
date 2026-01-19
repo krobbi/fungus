@@ -16,11 +16,12 @@ pub fn optimize_branches(graph: &mut Graph, ctx: &mut Context) {
             } else {
                 match block.instructions.last() {
                     Some(Instruction::Push(v)) => {
-                        block.exit = Exit::Jump(if v.into_i32() != 0 {
+                        block.exit = Exit::Jump(if v.is_non_zero() {
                             then_label
                         } else {
                             else_label
                         });
+
                         block.instructions.pop(); // Remove condition.
                         ctx.mark_change();
                     }

@@ -74,7 +74,7 @@ impl<'a, 'b> Interpreter<'a> {
                 0b11 => u,
                 _ => unreachable!(),
             }),
-            Exit::Branch(t, e) => Flow::Jump(if self.pop().into_i32() != 0 { t } else { e }),
+            Exit::Branch(t, e) => Flow::Jump(if self.pop().is_non_zero() { t } else { e }),
             Exit::End => Flow::End,
         }
     }
@@ -96,10 +96,11 @@ impl<'a, 'b> Interpreter<'a> {
             Instruction::Divide(o) => {
                 let rhs = self.pop();
                 let lhs = self.pop();
-                if rhs.into_i32() != 0 {
+
+                if rhs.is_non_zero() {
                     self.push(BinOp::from(*o).eval(lhs, rhs));
                 } else {
-                    print!("What do you want {}{o}0 to be? ", lhs.into_i32());
+                    print!("What do you want {lhs}{o}0 to be? ");
                     self.input_int();
                 }
             }
@@ -113,24 +114,27 @@ impl<'a, 'b> Interpreter<'a> {
             Instruction::Pop => {
                 self.pop();
             }
-            Instruction::OutputInt => print!("{} ", self.pop().into_i32()),
-            Instruction::OutputChar => print!("{}", self.pop().into_char_lossy()),
+            Instruction::OutputInt => print!("{} ", self.pop()),
+            Instruction::OutputChar => print!("{}", self.pop().to_char_lossy()),
             Instruction::Get => {
-                let y = self.pop().into_i32();
-                let x = self.pop().into_i32();
-                let value = match (usize::try_from(x), usize::try_from(y)) {
+                let y = self.pop();
+                let x = self.pop();
+
+                let value = match (usize::try_from(x.0), usize::try_from(y.0)) {
                     (Ok(x), Ok(y)) => self.playfield.get(x, y).unwrap_or_default(),
                     _ => Value::default(),
                 };
+
                 self.push(value);
             }
             Instruction::Put(s) => {
-                let y = self.pop().into_i32();
-                let x = self.pop().into_i32();
+                let y = self.pop();
+                let x = self.pop();
                 let value = self.pop();
-                if let (Ok(x), Ok(y)) = (usize::try_from(x), usize::try_from(y)) {
+
+                if let (Ok(x), Ok(y)) = (usize::try_from(x.0), usize::try_from(y.0)) {
                     if let Some(previous_value) = self.playfield.put(x, y, value) {
-                        if previous_value.into_i32() != value.into_i32() {
+                        if previous_value != value {
                             return Some(s);
                         }
                     }

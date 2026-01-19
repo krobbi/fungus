@@ -59,7 +59,7 @@ pub fn parse_program_state(playfield: &Playfield, main_state: State) -> (Program
 /// Parses a block from a cursor.
 fn parse_block(cursor: Cursor) -> Block {
     let value = cursor.value();
-    match (cursor.mode(), value.into_char_lossy()) {
+    match (cursor.mode(), value.to_char_lossy()) {
         (Mode::Command, '0') => push(0, cursor),
         (Mode::Command, '1') => push(1, cursor),
         (Mode::Command, '2') => push(2, cursor),
@@ -97,12 +97,12 @@ fn parse_block(cursor: Cursor) -> Block {
         (Mode::Command, '~') => Instruction::InputChar.into_block(cursor),
         (Mode::Command, '@') => Exit::End.into_block(),
         (Mode::Command, _) => cursor.step().into(),
-        (Mode::String, _) => push(value.into_i32(), cursor),
+        (Mode::String, _) => push(value.0, cursor),
     }
 }
 
 /// Creates a new push block from a value and a cursor.
-fn push(value: i32, cursor: Cursor) -> Block {
+fn push(value: i64, cursor: Cursor) -> Block {
     Instruction::Push(value.into()).into_block(cursor)
 }
 

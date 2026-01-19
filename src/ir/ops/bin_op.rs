@@ -1,7 +1,4 @@
-use std::{
-    fmt::{self, Display, Formatter, Write as _},
-    num::Wrapping,
-};
+use std::fmt::{self, Display, Formatter};
 
 use crate::common::Value;
 
@@ -32,17 +29,14 @@ pub enum BinOp {
 impl BinOp {
     /// Evaluates the binary operator with operands.
     pub fn eval(self, lhs: Value, rhs: Value) -> Value {
-        let (lhs, rhs) = (Wrapping(lhs.into_i32()), Wrapping(rhs.into_i32()));
-
-        let result = match self {
+        match self {
             Self::Add => lhs + rhs,
             Self::Subtract => lhs - rhs,
             Self::Multiply => lhs * rhs,
-            Self::Greater => Wrapping((lhs > rhs).into()),
+            Self::Greater => (lhs > rhs).into(),
             Self::Divide => lhs / rhs,
             Self::Modulo => lhs % rhs,
-        };
-        result.0.into()
+        }
     }
 }
 
@@ -57,14 +51,15 @@ impl From<DivOp> for BinOp {
 
 impl Display for BinOp {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let c = match self {
-            Self::Add => '+',
-            Self::Subtract => '-',
-            Self::Multiply => '*',
-            Self::Greater => '>',
-            Self::Divide => '/',
-            Self::Modulo => '%',
+        let symbol = match self {
+            Self::Add => "+",
+            Self::Subtract => "-",
+            Self::Multiply => "*",
+            Self::Greater => ">",
+            Self::Divide => "/",
+            Self::Modulo => "%",
         };
-        f.write_char(c)
+
+        f.write_str(symbol)
     }
 }

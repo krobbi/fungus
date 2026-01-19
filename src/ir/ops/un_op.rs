@@ -1,4 +1,4 @@
-use std::fmt::{self, Display, Formatter, Write as _};
+use std::fmt::{self, Display, Formatter};
 
 use crate::common::Value;
 
@@ -13,16 +13,17 @@ impl UnOp {
     /// Evaluates the unary operator with an operand.
     pub fn eval(self, rhs: Value) -> Value {
         match self {
-            Self::Not => i32::from(rhs.into_i32() == 0).into(),
+            Self::Not => !rhs,
         }
     }
 }
 
 impl Display for UnOp {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let c = match self {
-            Self::Not => '!',
+        let symbol = match self {
+            Self::Not => "!",
         };
-        f.write_char(c)
+
+        f.write_str(symbol)
     }
 }
