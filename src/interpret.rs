@@ -174,7 +174,7 @@ impl<'a, 'b> Interpreter<'a> {
 
     /// Returns the top value of the stack.
     fn peek(&self) -> Value {
-        self.stack.last().copied().unwrap_or_default()
+        self.stack.last().copied().unwrap_or(Value(0))
     }
 
     /// Pushes a value to the stack.
@@ -184,7 +184,7 @@ impl<'a, 'b> Interpreter<'a> {
 
     /// Pops a value from the stack.
     fn pop(&mut self) -> Value {
-        self.stack.pop().unwrap_or_default()
+        self.stack.pop().unwrap_or(Value(0))
     }
 }
 

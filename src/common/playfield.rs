@@ -23,7 +23,7 @@ impl Playfield {
         let height = lines.clone().count().max(1);
         assert!(width > 0 && height > 0);
 
-        let mut cells = vec![' '.into(); width * height];
+        let mut cells = vec![Value::default(); width * height];
         for row in cells.chunks_exact_mut(width) {
             if let Some(line) = lines.next() {
                 let line: Box<[Value]> = line.chars().map(Into::into).collect();

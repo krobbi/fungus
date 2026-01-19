@@ -4,7 +4,7 @@ use std::{
 };
 
 /// A Befunge value.
-#[derive(Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct Value(pub i64);
 
@@ -23,6 +23,12 @@ impl Value {
             .ok()
             .and_then(char::from_u32)
             .unwrap_or(char::REPLACEMENT_CHARACTER)
+    }
+}
+
+impl Default for Value {
+    fn default() -> Self {
+        ' '.into()
     }
 }
 
