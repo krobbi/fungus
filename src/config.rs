@@ -1,42 +1,43 @@
 use std::path::{Path, PathBuf};
 
-use clap::Parser;
+use clap::{Parser, ValueHint};
 
-use crate::error::Result;
+use crate::error::Error;
 
-/// Configuration data for Fungus.
-pub struct Config {
-    /// The inner command line arguments.
-    args: Args,
-}
+/// A configuration for Fungus.
+pub struct Config(Inner);
 
 impl Config {
-    /// Creates new configuration data from command line arguments.
-    pub fn try_new() -> Result<Self> {
-        let args = Args::try_parse()?;
-        Ok(Self { args })
+    /// Creates a new `Config` from command line arguments.
+    pub fn try_new() -> Result<Self, Error> {
+        let inner = Inner::try_parse()?;
+        Ok(Self(inner))
     }
 
-    /// Returns the path to the source file.
-    pub fn path(&self) -> &Path {
-        &self.args.path
+    /// Returns the [`Path`] to the source file.
+    pub fn source_path(&self) -> &Path {
+        &self.0.source_path
     }
 
-    /// Returns whether to print the program as pseudo-assembly.
-    pub fn dump(&self) -> bool {
-        self.args.dump
+    /// Returns [`true`] if the program should be printed as pseudo-assembly.
+    pub fn should_print_pseudo_assembly(&self) -> bool {
+        self.0.should_print_pseudo_assembly
     }
 }
 
-/// Command line arguments.
+/// Data for a [`Config`].
 #[derive(Parser)]
 #[command(bin_name("fungus"), version, about)]
-struct Args {
+struct Inner {
     /// The path to the source file.
-    #[arg(help = "Source file path")]
-    path: PathBuf,
+    #[arg(
+        value_hint(ValueHint::FilePath),
+        value_name("SOURCE"),
+        help = "Source file path"
+    )]
+    source_path: PathBuf,
 
     /// Whether to print the program as pseudo-assembly.
-    #[arg(short, long, help = "Print pseudo-assembly")]
-    dump: bool,
+    #[arg(id = "dump", short, long, help = "Print pseudo-assembly")]
+    should_print_pseudo_assembly: bool,
 }

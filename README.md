@@ -8,13 +8,13 @@ Fungus is run from the command line:
 fungus [OPTIONS] <PATH>
 ```
 
-The source file at `<PATH>` will be loaded and interpreted as a Befunge
+The source file at `<SOURCE>` will be loaded and interpreted as a Befunge
 program.
 
 ### Arguments
-| Argument | Usage            |
-| :------- | :--------------- |
-| `<PATH>` | Source file path |
+| Argument   | Usage            |
+| :--------- | :--------------- |
+| `<SOURCE>` | Source file path |
 
 A positional argument is expected for the path to the Befunge source file. The
 source file must be formatted as UTF-8.
