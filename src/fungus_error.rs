@@ -1,21 +1,24 @@
 use std::{
-    error,
-    fmt::{self, Display, Formatter},
-    io::{self, Write},
+    io::{self, Write as _},
     process::ExitCode,
 };
 
+use thiserror::Error;
+
 /// An error raised by Fungus.
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum FungusError {
     /// An error raised by clap.
-    Clap(clap::Error),
+    #[error(transparent)]
+    Clap(#[from] clap::Error),
 
     /// An error caused by the source file not existing.
+    #[error("source file does not exist")]
     SourceFileDoesNotExist,
 
     /// An error caused by an I/O error while reading the source file.
-    CouldNotReadSourceFile(io::Error),
+    #[error("could not read source file: {0}")]
+    CouldNotReadSourceFile(#[source] io::Error),
 }
 
 impl FungusError {
@@ -27,32 +30,6 @@ impl FungusError {
         } else {
             let _ = writeln!(io::stderr(), "error: {self}");
             ExitCode::FAILURE
-        }
-    }
-}
-
-impl From<clap::Error> for FungusError {
-    fn from(value: clap::Error) -> Self {
-        Self::Clap(value)
-    }
-}
-
-impl error::Error for FungusError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::Clap(e) => Some(e),
-            Self::SourceFileDoesNotExist => None,
-            Self::CouldNotReadSourceFile(e) => Some(e),
-        }
-    }
-}
-
-impl Display for FungusError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Clap(e) => e.fmt(f),
-            Self::SourceFileDoesNotExist => f.write_str("source file does not exist"),
-            Self::CouldNotReadSourceFile(e) => write!(f, "could not read source file: {e}"),
         }
     }
 }

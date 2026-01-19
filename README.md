@@ -255,6 +255,7 @@ These libraries are used:
 * [clap](https://crates.io/crates/clap) - Command line argument parsing
 * [rand](https://crates.io/crates/rand) - Randomness for interpreting the `?`
   command
+* [thiserror](https://crates.io/crates/thiserror) - Error handling attributes
 
 ## Credits
 These resources were used for implementation and testing:
