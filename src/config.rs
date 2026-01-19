@@ -10,7 +10,7 @@ pub struct Config(Inner);
 impl Config {
     /// Creates a new `Config` from command line arguments. This function
     /// returns a [`FungusError`] if the command line arguments could not be
-    /// parsed, or if a help or version message should be displayed.
+    /// parsed or if a help or version message should be displayed.
     pub fn try_new() -> Result<Self, FungusError> {
         let inner = Inner::try_parse()?;
         Ok(Self(inner))

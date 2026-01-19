@@ -14,7 +14,10 @@ use crate::{common::Playfield, config::Config, fungus_error::FungusError};
 fn main() -> ExitCode {
     match try_run() {
         Ok(()) => ExitCode::SUCCESS,
-        Err(e) => e.report(),
+        Err(error) => {
+            error.print();
+            error.exit_code()
+        }
     }
 }
 
@@ -39,8 +42,8 @@ fn try_run() -> Result<(), FungusError> {
 /// if the source file does not exist or could not be read.
 fn try_read_source(path: &Path) -> Result<String, FungusError> {
     if path.is_file() {
-        fs::read_to_string(path).map_err(FungusError::CouldNotReadSourceFile)
+        fs::read_to_string(path).map_err(|e| FungusError::SourceFileRead(path.into(), e))
     } else {
-        Err(FungusError::SourceFileDoesNotExist)
+        Err(FungusError::SourceFileMissing(path.into()))
     }
 }
