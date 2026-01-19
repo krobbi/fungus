@@ -1,6 +1,6 @@
 use std::{
     collections::BTreeMap,
-    fmt::{self, Display, Formatter, Write},
+    fmt::{self, Display, Formatter, Write as _},
 };
 
 use super::{Block, Label};

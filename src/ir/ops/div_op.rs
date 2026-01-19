@@ -1,4 +1,4 @@
-use std::fmt::{self, Display, Formatter, Write};
+use std::fmt::{self, Display, Formatter, Write as _};
 
 /// A binary division operator with side effects if the right-hand operand is
 /// zero.

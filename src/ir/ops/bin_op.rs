@@ -1,5 +1,5 @@
 use std::{
-    fmt::{self, Display, Formatter, Write},
+    fmt::{self, Display, Formatter, Write as _},
     num::Wrapping,
 };
 

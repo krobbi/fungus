@@ -1,6 +1,6 @@
 use std::{
     collections::VecDeque,
-    io::{self, Write},
+    io::{self, Write as _},
 };
 
 use crate::{
