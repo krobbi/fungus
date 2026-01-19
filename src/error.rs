@@ -3,11 +3,7 @@ use std::{
     fmt::{self, Display, Formatter},
     io::{self, Write},
     process::ExitCode,
-    result,
 };
-
-/// A result that may contain a Fungus error.
-pub type Result<T> = result::Result<T, Error>;
 
 /// An error raised by Fungus.
 #[derive(Debug)]
