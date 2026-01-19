@@ -7,7 +7,7 @@ use std::{
 
 /// An error raised by Fungus.
 #[derive(Debug)]
-pub enum Error {
+pub enum FungusError {
     /// An error raised by clap.
     Clap(clap::Error),
 
@@ -18,7 +18,7 @@ pub enum Error {
     CouldNotReadSourceFile(io::Error),
 }
 
-impl Error {
+impl FungusError {
     /// Prints the error and returns an exit code.
     pub fn report(&self) -> ExitCode {
         if let Self::Clap(e) = self {
@@ -31,13 +31,13 @@ impl Error {
     }
 }
 
-impl From<clap::Error> for Error {
+impl From<clap::Error> for FungusError {
     fn from(value: clap::Error) -> Self {
         Self::Clap(value)
     }
 }
 
-impl error::Error for Error {
+impl error::Error for FungusError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::Clap(e) => Some(e),
@@ -47,7 +47,7 @@ impl error::Error for Error {
     }
 }
 
-impl Display for Error {
+impl Display for FungusError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Clap(e) => e.fmt(f),

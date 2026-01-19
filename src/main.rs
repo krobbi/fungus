@@ -1,6 +1,6 @@
 mod common;
 mod config;
-mod error;
+mod fungus_error;
 mod interpret;
 mod ir;
 mod optimize;
@@ -8,9 +8,9 @@ mod parse;
 
 use std::{fs, path::Path, process::ExitCode};
 
-use crate::{common::Playfield, config::Config, error::Error};
+use crate::{common::Playfield, config::Config, fungus_error::FungusError};
 
-/// Runs Fungus and returns an exit code.
+/// Runs Fungus and returns an [`ExitCode`].
 fn main() -> ExitCode {
     match try_run() {
         Ok(()) => ExitCode::SUCCESS,
@@ -18,10 +18,11 @@ fn main() -> ExitCode {
     }
 }
 
-/// Runs Fungus.
-fn try_run() -> Result<(), Error> {
+/// Runs Fungus. This function returns a [`FungusError`] if an error occurred.
+fn try_run() -> Result<(), FungusError> {
     let config = Config::try_new()?;
-    let mut playfield = try_load_playfield(config.source_path())?;
+    let source = try_read_source(config.source_path())?;
+    let mut playfield = Playfield::new(&source);
     let (mut program, flow_graph) = parse::parse_program(&playfield);
     optimize::optimize_program(&mut program, &flow_graph, &playfield);
 
@@ -34,17 +35,12 @@ fn try_run() -> Result<(), Error> {
     Ok(())
 }
 
-/// Loads a playfield from a file path.
-fn try_load_playfield(path: &Path) -> Result<Playfield, Error> {
-    let source = try_read_source(path)?;
-    Ok(Playfield::new(&source))
-}
-
-/// Reads source code from a file path.
-fn try_read_source(path: &Path) -> Result<String, Error> {
+/// Reads source code from a file path. This function returns a [`FungusError`]
+/// if the source file does not exist or could not be read.
+fn try_read_source(path: &Path) -> Result<String, FungusError> {
     if path.is_file() {
-        fs::read_to_string(path).map_err(Error::CouldNotReadSourceFile)
+        fs::read_to_string(path).map_err(FungusError::CouldNotReadSourceFile)
     } else {
-        Err(Error::SourceFileDoesNotExist)
+        Err(FungusError::SourceFileDoesNotExist)
     }
 }
