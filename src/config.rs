@@ -2,14 +2,18 @@ use std::path::Path;
 
 use clap::{Parser, ValueHint};
 
+use crate::errors::FungusError;
+
 /// A configuration for Fungus.
 pub struct Config(Data);
 
 impl Config {
-    /// Creates a new `Config` from command line arguments.
-    pub fn from_cli() -> Self {
-        let data = Data::parse();
-        Self(data)
+    /// Creates a new `Config` from command line arguments. This function
+    /// returns a [`FungusError`] if the command line arguments were invalid or
+    /// if a help or version message should be displayed.
+    pub fn from_cli() -> Result<Self, FungusError> {
+        let data = Data::try_parse()?;
+        Ok(Self(data))
     }
 
     /// Returns the [`Path`] to the source file.

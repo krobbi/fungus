@@ -11,7 +11,7 @@ Fungus is run from the command line:
 fungus <FILE>
 ```
 
-The source file path, `<FILE>` is printed as an escaped string.
+The source file path, `<FILE>` is displayed as an escaped string.
 
 ### Arguments
 | Argument | Usage            |
@@ -33,12 +33,13 @@ If the `--dump` flag is set, then the program will be printed as
 pseudo-assembly instead of being interpreted.
 -->
 
-If the `--help` or `--version` flag is set, then information will be printed
+If the `--help` or `--version` flag is set, then information will be displayed
 but no action will be performed.
 
 ## Dependencies
 These libraries are used:
 * [clap](https://crates.io/crates/clap) - Command line argument parsing
+* [thiserror](https://crates.io/crates/thiserror) - Error handling attributes
 
 ## Credits
 These resources were used for implementation and testing:
