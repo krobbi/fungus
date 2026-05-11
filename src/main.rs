@@ -1,5 +1,7 @@
+mod cfg;
 mod config;
 mod errors;
+mod parse;
 mod playfield;
 mod value;
 
@@ -23,7 +25,8 @@ fn run() -> Result<(), FungusError> {
     let config = Config::from_cli()?;
     let source = read_source(config.source_file_path())?;
     let playfield = Playfield::new(&source)?;
-    playfield.dump();
+    let cfg = parse::parse_playfield(&playfield);
+    println!("{cfg}");
     Ok(())
 }
 

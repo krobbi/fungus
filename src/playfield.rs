@@ -3,12 +3,15 @@ use crate::{errors::FungusError, value::Value};
 /// A Befunge playfield.
 pub struct Playfield {
     /// The width in cells.
+    #[expect(dead_code, reason = "field should be used later")]
     width: u16,
 
     /// The height in cells.
+    #[expect(dead_code, reason = "field should be used later")]
     height: u16,
 
     /// The [`Value`]s.
+    #[expect(dead_code, reason = "field should be used later")]
     values: Box<[Value]>,
 }
 
@@ -38,27 +41,5 @@ impl Playfield {
             height,
             values,
         })
-    }
-
-    /// Displays the `Playfield` for debugging purposes.
-    pub fn dump(&self) {
-        let mut line = String::new();
-
-        for y in 0..self.height {
-            line.clear();
-
-            for x in 0..self.width {
-                let index = usize::from(y) * usize::from(self.width) + usize::from(x);
-                let char = match self.values[index].to_char_lossy() {
-                    ' ' => '░',
-                    c @ '!'..='~' => c,
-                    _ => char::REPLACEMENT_CHARACTER,
-                };
-
-                line.push(char);
-            }
-
-            println!("{line}");
-        }
     }
 }
