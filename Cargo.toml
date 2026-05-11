@@ -10,6 +10,7 @@ categories = ["command-line-utilities", "compilers"]
 publish = false
 
 [dependencies]
+clap = { version = "4.6.1", features = ["derive"] }
 
 [lints.rust]
 ambiguous_negative_literals = "warn"

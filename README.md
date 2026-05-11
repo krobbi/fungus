@@ -8,32 +8,30 @@ accelerates runtime performance with a parsing and optimization stage.
 ## Usage
 Fungus is run from the command line:
 ```shell
-fungus
+fungus <FILE>
 ```
 
-A hello world message will be printed.
-
-<!--
-The source file at `<SOURCE>` will be loaded and interpreted as a Befunge
-program.
+The source file path, `<FILE>` is printed as an escaped string.
 
 ### Arguments
-| Argument   | Usage            |
-| :--------- | :--------------- |
-| `<SOURCE>` | Source file path |
+| Argument | Usage            |
+| :------- | :--------------- |
+| `<FILE>` | Source file path |
 
-A positional argument is expected for the path to the Befunge source file. The
-source file must be formatted as UTF-8.
+A positional argument is expected for the path to the Befunge source file.
+<!--The source file must be formatted as UTF-8. -->
 
 ### Options
 | Short | Long        | Usage                 |
 | :---- | :---------- | :-------------------- |
-| `-d`  | `--dump`    | Print pseudo-assembly |
 | `-h`  | `--help`    | Print help            |
 | `-V`  | `--version` | Print version         |
+<!--
+| `-d`  | `--dump`    | Print pseudo-assembly |
 
 If the `--dump` flag is set, then the program will be printed as
 pseudo-assembly instead of being interpreted.
+-->
 
 If the `--help` or `--version` flag is set, then information will be printed
 but no action will be performed.
@@ -41,10 +39,6 @@ but no action will be performed.
 ## Dependencies
 These libraries are used:
 * [clap](https://crates.io/crates/clap) - Command line argument parsing
-* [rand](https://crates.io/crates/rand) - Randomness for interpreting the `?`
-  command
-* [thiserror](https://crates.io/crates/thiserror) - Error handling attributes
--->
 
 ## Credits
 These resources were used for implementation and testing:
