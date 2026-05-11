@@ -1,4 +1,8 @@
-use std::{io, process::ExitCode};
+use std::{
+    io::{self, Write as _},
+    path::Path,
+    process::ExitCode,
+};
 
 use thiserror::Error;
 
@@ -8,8 +12,16 @@ pub enum FungusError {
     /// A [`clap::Error`] caught while creating a
     /// [`Config`][crate::config::Config] from command line arguments. May be a
     /// non-error help or version message.
-    #[error(transparent)]
+    #[error("{0}")]
     Cli(#[from] clap::Error),
+
+    /// The source file does not exist.
+    #[error("source file '{0}' does not exist")]
+    SourceFileMissing(Box<Path>),
+
+    /// The source file could not be read.
+    #[error("could not read source file '{0}': {1}")]
+    SourceFileRead(Box<Path>, #[source] io::Error),
 }
 
 impl FungusError {
@@ -18,6 +30,7 @@ impl FungusError {
     pub fn print(&self) {
         let _: io::Result<()> = match self {
             Self::Cli(error) => error.print(),
+            _ => writeln!(io::stderr(), "error: {self}"),
         };
     }
 
@@ -28,6 +41,7 @@ impl FungusError {
                 .exit_code()
                 .try_into()
                 .map_or(ExitCode::FAILURE, From::<u8>::from),
+            _ => ExitCode::FAILURE,
         }
     }
 }

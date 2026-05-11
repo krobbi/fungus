@@ -1,7 +1,7 @@
 mod config;
 mod errors;
 
-use std::process::ExitCode;
+use std::{fs, path::Path, process::ExitCode};
 
 use crate::{config::Config, errors::FungusError};
 
@@ -19,6 +19,17 @@ fn main() -> ExitCode {
 /// Runs Fungus. This function returns a [`FungusError`] if an error occurred.
 fn run() -> Result<(), FungusError> {
     let config = Config::from_cli()?;
-    println!("{:?}", config.source_file_path().to_string_lossy());
+    let source = read_source(config.source_file_path())?;
+    println!("--- SOURCE ---\n{source}\n--------------");
     Ok(())
+}
+
+/// Reads source code from a [`Path`]. This function returns a [`FungusError`]
+/// if the source file does not exist or could not be read.
+fn read_source(path: &Path) -> Result<String, FungusError> {
+    if !path.is_file() {
+        return Err(FungusError::SourceFileMissing(Box::from(path)));
+    }
+
+    fs::read_to_string(path).map_err(|e| FungusError::SourceFileRead(Box::from(path), e))
 }
