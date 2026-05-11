@@ -1,9 +1,11 @@
 mod config;
 mod errors;
+mod playfield;
+mod value;
 
 use std::{fs, path::Path, process::ExitCode};
 
-use crate::{config::Config, errors::FungusError};
+use crate::{config::Config, errors::FungusError, playfield::Playfield};
 
 /// Runs Fungus and returns an [`ExitCode`].
 fn main() -> ExitCode {
@@ -20,7 +22,8 @@ fn main() -> ExitCode {
 fn run() -> Result<(), FungusError> {
     let config = Config::from_cli()?;
     let source = read_source(config.source_file_path())?;
-    println!("--- SOURCE ---\n{source}\n--------------");
+    let playfield = Playfield::new(&source)?;
+    playfield.dump();
     Ok(())
 }
 

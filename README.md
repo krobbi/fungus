@@ -11,8 +11,6 @@ Fungus is run from the command line:
 fungus <FILE>
 ```
 
-The source file path, `<FILE>` is displayed as an escaped string.
-
 ### Arguments
 | Argument | Usage            |
 | :------- | :--------------- |
