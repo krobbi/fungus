@@ -3,11 +3,9 @@ use crate::{errors::FungusError, value::Value};
 /// A Befunge playfield.
 pub struct Playfield {
     /// The width in cells.
-    #[expect(dead_code, reason = "field should be used later")]
     width: u16,
 
     /// The height in cells.
-    #[expect(dead_code, reason = "field should be used later")]
     height: u16,
 
     /// The [`Value`]s.
@@ -41,5 +39,10 @@ impl Playfield {
             height,
             values,
         })
+    }
+
+    /// Returns the `Playfield`'s bounds in cells.
+    pub const fn bounds(&self) -> (u16, u16) {
+        (self.width, self.height)
     }
 }
