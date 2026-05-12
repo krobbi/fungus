@@ -79,6 +79,11 @@ impl Display for Terminator {
             Self::Branch(then_label, else_label) => {
                 write!(f, "{:8}{then_label} else {else_label}", "branch")
             }
+            Self::Random(right_label, down_label, left_label, up_label) => write!(
+                f,
+                "{:8}{right_label}, {down_label}, {left_label}, {up_label}",
+                "random"
+            ),
         }
     }
 }

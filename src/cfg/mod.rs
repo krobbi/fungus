@@ -71,6 +71,9 @@ pub enum Terminator {
 
     /// Conditionally branch to one of two [`Label`]s.
     Branch(Label, Label),
+
+    /// Randomly branch to one of four [`Label`]s.
+    Random(Label, Label, Label, Label),
 }
 
 impl Terminator {
@@ -80,6 +83,9 @@ impl Terminator {
             Self::Halt => Box::new([]),
             Self::Jump(label) => Box::new([*label]),
             Self::Branch(then_label, else_label) => Box::new([*then_label, *else_label]),
+            Self::Random(right_label, down_label, left_label, up_label) => {
+                Box::new([*right_label, *down_label, *left_label, *up_label])
+            }
         }
     }
 }

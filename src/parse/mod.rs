@@ -87,6 +87,13 @@ fn parse_command(cursor: Cursor<'_>) -> Item {
         '<' => cursor.go(Direction::Left).into(),
         '^' => cursor.go(Direction::Up).into(),
         'v' => cursor.go(Direction::Down).into(),
+        '?' => {
+            let right_label = cursor.go(Direction::Right).into();
+            let down_label = cursor.go(Direction::Down).into();
+            let left_label = cursor.go(Direction::Left).into();
+            let up_label = cursor.go(Direction::Up).into();
+            Terminator::Random(right_label, down_label, left_label, up_label).into()
+        }
         '_' => branch_item(cursor, Direction::Left, Direction::Right),
         '|' => branch_item(cursor, Direction::Up, Direction::Down),
         '#' => cursor.step().step().into(),
