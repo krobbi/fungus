@@ -2,6 +2,7 @@ use crate::{
     cfg::{Label, Terminator},
     playfield::Playfield,
     state::{Direction, State},
+    value::Value,
 };
 
 use super::Item;
@@ -20,6 +21,13 @@ impl<'ply> Cursor<'ply> {
     /// Creates a new `Cursor` from a [`Playfield`] and a [`State`].
     pub const fn new(playfield: &'ply Playfield, state: State) -> Self {
         Self { playfield, state }
+    }
+
+    /// Returns the [`Value`] under the cursor.
+    pub fn value(self) -> Value {
+        self.playfield
+            .value(self.state.x, self.state.y)
+            .expect("cursor should be in bounds of playfield")
     }
 
     /// Returns a copy of the `Cursor` moved forward by one cell.

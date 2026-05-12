@@ -7,7 +7,6 @@ impl Value {
     /// Lossily converts the `Value` to a [`char`]. This function returns
     /// [`char::REPLACEMENT_CHARACTER`] if the `Value` is not a Unicode scalar
     /// value.
-    #[expect(dead_code, reason = "function should be used later")]
     pub fn to_char_lossy(self) -> char {
         self.0
             .try_into()

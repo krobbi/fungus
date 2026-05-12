@@ -9,7 +9,6 @@ pub struct Playfield {
     height: u16,
 
     /// The [`Value`]s.
-    #[expect(dead_code, reason = "field should be used later")]
     values: Box<[Value]>,
 }
 
@@ -39,6 +38,17 @@ impl Playfield {
             height,
             values,
         })
+    }
+
+    /// Returns a [`Value`] from the `Playfield` at a position in cells. This
+    /// function returns [`None`] if the position is out of bounds.
+    pub fn value(&self, x: u16, y: u16) -> Option<Value> {
+        if x >= self.width {
+            return None;
+        }
+
+        let index = usize::from(y) * usize::from(self.width) + usize::from(x);
+        self.values.get(index).copied()
     }
 
     /// Returns the `Playfield`'s bounds in cells.

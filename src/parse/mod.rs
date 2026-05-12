@@ -76,5 +76,8 @@ fn parse_basic_block(playfield: &Playfield, state: State) -> BasicBlock {
 
 /// Parses an [`Item`] from a [`Cursor`] in command mode.
 fn parse_command(cursor: Cursor<'_>) -> Item {
-    cursor.step().into()
+    match cursor.value().to_char_lossy() {
+        '#' => cursor.step().step().into(),
+        _ => cursor.step().into(),
+    }
 }
