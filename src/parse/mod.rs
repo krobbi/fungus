@@ -97,6 +97,7 @@ fn parse_command(cursor: Cursor<'_>) -> Item {
         '_' => branch_item(cursor, Direction::Left, Direction::Right),
         '|' => branch_item(cursor, Direction::Up, Direction::Down),
         '#' => cursor.step().step().into(),
+        'p' => Terminator::Put(cursor.step().into()).into(),
         '@' => Terminator::Halt.into(),
         _ => cursor.step().into(),
     }

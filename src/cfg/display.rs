@@ -84,6 +84,7 @@ impl Display for Terminator {
                 "{:8}{right_label}, {down_label}, {left_label}, {up_label}",
                 "random"
             ),
+            Self::Put(label) => write!(f, "{:8}{label}", "put"),
         }
     }
 }
