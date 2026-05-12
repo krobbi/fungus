@@ -74,6 +74,7 @@ impl Display for BasicBlock {
 impl Display for Terminator {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Halt => write!(f, "halt"),
             Self::Jump(label) => write!(f, "{:8}{label}", "jump"),
         }
     }

@@ -19,6 +19,12 @@ enum Item {
     Terminator(Terminator),
 }
 
+impl From<Terminator> for Item {
+    fn from(value: Terminator) -> Self {
+        Self::Terminator(value)
+    }
+}
+
 /// Parses a [`Cfg`] from a [`Playfield`] at a main [`State`].
 fn parse_playfield_at(playfield: &Playfield, main_state: State) -> Cfg {
     let mut cfg = Cfg::new();
@@ -82,6 +88,7 @@ fn parse_command(cursor: Cursor<'_>) -> Item {
         '^' => cursor.go(Direction::Up).into(),
         'v' => cursor.go(Direction::Down).into(),
         '#' => cursor.step().step().into(),
+        '@' => Terminator::Halt.into(),
         _ => cursor.step().into(),
     }
 }

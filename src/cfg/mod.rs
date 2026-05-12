@@ -63,7 +63,10 @@ pub struct BasicBlock {
 /// A [`BasicBlock`]'s terminator.
 #[derive(Debug)]
 pub enum Terminator {
-    /// An unconditional jump to a [`Label`].
+    /// Halt execution.
+    Halt,
+
+    /// Unconditionally jump to a [`Label`].
     Jump(Label),
 }
 
@@ -71,6 +74,7 @@ impl Terminator {
     /// Returns a boxed slice of [`Label`]s targeted by the terminator.
     pub fn labels(&self) -> Box<[Label]> {
         match self {
+            Self::Halt => Box::new([]),
             Self::Jump(label) => Box::new([*label]),
         }
     }
