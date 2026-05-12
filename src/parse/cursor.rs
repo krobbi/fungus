@@ -44,6 +44,13 @@ impl<'ply> Cursor<'ply> {
 
         self
     }
+
+    /// Returns a copy of the `Cursor` moved forward by one cell in a
+    /// [`Direction`].
+    pub fn go(mut self, direction: Direction) -> Self {
+        self.state.direction = direction;
+        self.step()
+    }
 }
 
 impl From<Cursor<'_>> for Item {

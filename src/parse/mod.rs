@@ -3,7 +3,7 @@ mod cursor;
 use crate::{
     cfg::{BasicBlock, Cfg, Label, Terminator},
     playfield::Playfield,
-    state::{Mode, State},
+    state::{Direction, Mode, State},
 };
 
 use self::cursor::Cursor;
@@ -77,6 +77,10 @@ fn parse_basic_block(playfield: &Playfield, state: State) -> BasicBlock {
 /// Parses an [`Item`] from a [`Cursor`] in command mode.
 fn parse_command(cursor: Cursor<'_>) -> Item {
     match cursor.value().to_char_lossy() {
+        '>' => cursor.go(Direction::Right).into(),
+        '<' => cursor.go(Direction::Left).into(),
+        '^' => cursor.go(Direction::Up).into(),
+        'v' => cursor.go(Direction::Down).into(),
         '#' => cursor.step().step().into(),
         _ => cursor.step().into(),
     }

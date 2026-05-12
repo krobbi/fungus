@@ -34,14 +34,11 @@ pub enum Direction {
     Right,
 
     /// Facing down.
-    #[expect(dead_code, reason = "variant should be used later")]
     Down,
 
     /// Facing left.
-    #[expect(dead_code, reason = "variant should be used later")]
     Left,
 
     /// Facing up.
-    #[expect(dead_code, reason = "variant should be used later")]
     Up,
 }
