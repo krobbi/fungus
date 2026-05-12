@@ -76,6 +76,9 @@ impl Display for Terminator {
         match self {
             Self::Halt => write!(f, "halt"),
             Self::Jump(label) => write!(f, "{:8}{label}", "jump"),
+            Self::Branch(then_label, else_label) => {
+                write!(f, "{:8}{then_label} else {else_label}", "branch")
+            }
         }
     }
 }

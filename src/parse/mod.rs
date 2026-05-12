@@ -87,8 +87,17 @@ fn parse_command(cursor: Cursor<'_>) -> Item {
         '<' => cursor.go(Direction::Left).into(),
         '^' => cursor.go(Direction::Up).into(),
         'v' => cursor.go(Direction::Down).into(),
+        '_' => branch_item(cursor, Direction::Left, Direction::Right),
+        '|' => branch_item(cursor, Direction::Up, Direction::Down),
         '#' => cursor.step().step().into(),
         '@' => Terminator::Halt.into(),
         _ => cursor.step().into(),
     }
+}
+
+/// Returns a new branch [`Item`] from a [`Cursor`] and branch [`Direction`]s.
+fn branch_item(cursor: Cursor<'_>, then_direction: Direction, else_direction: Direction) -> Item {
+    let then_label = cursor.go(then_direction).into();
+    let else_label = cursor.go(else_direction).into();
+    Terminator::Branch(then_label, else_label).into()
 }

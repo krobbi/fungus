@@ -68,6 +68,9 @@ pub enum Terminator {
 
     /// Unconditionally jump to a [`Label`].
     Jump(Label),
+
+    /// Conditionally branch to one of two [`Label`]s.
+    Branch(Label, Label),
 }
 
 impl Terminator {
@@ -76,6 +79,7 @@ impl Terminator {
         match self {
             Self::Halt => Box::new([]),
             Self::Jump(label) => Box::new([*label]),
+            Self::Branch(then_label, else_label) => Box::new([*then_label, *else_label]),
         }
     }
 }
