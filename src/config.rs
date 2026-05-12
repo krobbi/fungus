@@ -17,8 +17,14 @@ impl Config {
     }
 
     /// Returns the [`Path`] to the source file.
-    pub fn source_file_path(&self) -> &Path {
+    pub const fn source_file_path(&self) -> &Path {
         &self.0.source_file_path
+    }
+
+    /// Returns [`true`] if the program should be displayed instead of being
+    /// interpreted.
+    pub const fn should_display_program(&self) -> bool {
+        self.0.should_display_program
     }
 }
 
@@ -33,4 +39,8 @@ struct Data {
         help = "Source file path"
     )]
     source_file_path: Box<Path>,
+
+    /// Whether the program should be displayed instead of being interpreted.
+    #[arg(id = "dump", help = "Print pseudo-assembly", short, long)]
+    should_display_program: bool,
 }

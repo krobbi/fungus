@@ -8,28 +8,29 @@ accelerates runtime performance with a parsing and optimization stage.
 ## Usage
 Fungus is run from the command line:
 ```shell
-fungus <FILE>
+fungus [OPTIONS] <FILE>
 ```
+
+The Befunge source file at `<FILE>` will be loaded. Fungus is being rewritten,
+so the file will not yet be interpreted.
 
 ### Arguments
 | Argument | Usage            |
 | :------- | :--------------- |
 | `<FILE>` | Source file path |
 
-A positional argument is expected for the path to the Befunge source file.
-<!--The source file must be formatted as UTF-8. -->
+A positional argument is expected for the path to the Befunge source file. The
+source file must be formatted as UTF-8.
 
 ### Options
 | Short | Long        | Usage                 |
 | :---- | :---------- | :-------------------- |
+| `-d`  | `--dump`    | Print pseudo-assembly |
 | `-h`  | `--help`    | Print help            |
 | `-V`  | `--version` | Print version         |
-<!--
-| `-d`  | `--dump`    | Print pseudo-assembly |
 
-If the `--dump` flag is set, then the program will be printed as
+If the `--dump` flag is set, then the program will be displayed as
 pseudo-assembly instead of being interpreted.
--->
 
 If the `--help` or `--version` flag is set, then information will be displayed
 but no action will be performed.

@@ -26,8 +26,13 @@ fn run() -> Result<(), FungusError> {
     let source = read_source(config.source_file_path())?;
     let playfield = Playfield::new(&source)?;
     let cfg = parse::parse_playfield(&playfield);
-    println!("{cfg}");
-    Ok(())
+
+    if config.should_display_program() {
+        println!("{cfg}");
+        return Ok(());
+    }
+
+    Err(FungusError::MissingDumpFlag)
 }
 
 /// Reads source code from a [`Path`]. This function returns a [`FungusError`]
