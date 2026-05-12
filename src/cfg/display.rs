@@ -1,5 +1,7 @@
 use std::fmt::{self, Display, Formatter, Write as _};
 
+use crate::state::{Direction, Mode, State};
+
 use super::{BasicBlock, Cfg, Label, Terminator};
 
 impl Display for Cfg {
@@ -24,7 +26,42 @@ impl Display for Label {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Main => write!(f, "main"),
+            Self::State(state) => write!(f, "{state}"),
         }
+    }
+}
+
+impl Display for State {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "x{}_y{}_{}_{}",
+            self.x, self.y, self.mode, self.direction
+        )
+    }
+}
+
+impl Display for Mode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let name = match self {
+            Self::Command => "command",
+            Self::String => "string",
+        };
+
+        write!(f, "{name}")
+    }
+}
+
+impl Display for Direction {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let name = match self {
+            Self::Right => "right",
+            Self::Down => "down",
+            Self::Left => "left",
+            Self::Up => "up",
+        };
+
+        write!(f, "{name}")
     }
 }
 

@@ -1,11 +1,8 @@
-#![expect(
-    clippy::zero_sized_map_values,
-    reason = "basic blocks will be non-zero sized later"
-)]
-
 mod display;
 
 use std::{collections::HashMap, vec::IntoIter};
+
+use crate::state::State;
 
 /// A control flow graph.
 #[derive(Debug)]
@@ -20,6 +17,11 @@ impl Cfg {
         Self {
             basic_blocks: HashMap::new(),
         }
+    }
+
+    /// Returns [`true`] if the `Cfg` contains a [`Label`].
+    pub fn contains_label(&self, label: Label) -> bool {
+        self.basic_blocks.contains_key(&label)
     }
 
     /// Returns a sorted [`Iterator`] over the `Cfg`'s [`Label`]s.
@@ -46,6 +48,9 @@ impl Cfg {
 pub enum Label {
     /// The main entry point.
     Main,
+
+    /// A [`BasicBlock`] originating at a [`State`].
+    State(State),
 }
 
 /// A basic block.
@@ -60,4 +65,13 @@ pub struct BasicBlock {
 pub enum Terminator {
     /// An unconditional jump to a [`Label`].
     Jump(Label),
+}
+
+impl Terminator {
+    /// Returns a boxed slice of [`Label`]s targeted by the terminator.
+    pub fn labels(&self) -> Box<[Label]> {
+        match self {
+            Self::Jump(label) => Box::new([*label]),
+        }
+    }
 }

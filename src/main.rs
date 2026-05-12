@@ -3,6 +3,7 @@ mod config;
 mod errors;
 mod parse;
 mod playfield;
+mod state;
 mod value;
 
 use std::{fs, path::Path, process::ExitCode};
