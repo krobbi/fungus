@@ -55,7 +55,13 @@ impl<'ply> Cursor<'ply> {
 
 impl From<Cursor<'_>> for Item {
     fn from(value: Cursor<'_>) -> Self {
-        Terminator::Jump(value.into()).into()
+        Self::Terminator(value.into())
+    }
+}
+
+impl From<Cursor<'_>> for Terminator {
+    fn from(value: Cursor<'_>) -> Self {
+        Self::Jump(value.into())
     }
 }
 

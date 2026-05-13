@@ -1,3 +1,5 @@
+use std::fmt::{self, Display, Formatter};
+
 /// A Befunge value.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(transparent)]
@@ -19,5 +21,11 @@ impl Value {
 impl From<char> for Value {
     fn from(value: char) -> Self {
         Self(u32::from(value).into())
+    }
+}
+
+impl Display for Value {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }

@@ -1,9 +1,10 @@
 mod cursor;
 
 use crate::{
-    cfg::{BasicBlock, Cfg, Label, Terminator},
+    cfg::{BasicBlock, Cfg, Expr, Instruction, Label, Terminator},
     playfield::Playfield,
     state::{Direction, Mode, State},
+    value::Value,
 };
 
 use self::cursor::Cursor;
@@ -13,10 +14,19 @@ pub fn parse_playfield(playfield: &Playfield) -> Cfg {
     parse_playfield_at(playfield, State::default())
 }
 
-/// A parsed [`Terminator`].
+/// A parsed [`Instruction`] or [`Terminator`].
 enum Item {
+    /// An [`Instruction`].
+    Instruction(Instruction),
+
     /// A [`Terminator`].
     Terminator(Terminator),
+}
+
+impl From<Instruction> for Item {
+    fn from(value: Instruction) -> Self {
+        Self::Instruction(value)
+    }
 }
 
 impl From<Terminator> for Item {
@@ -31,6 +41,7 @@ fn parse_playfield_at(playfield: &Playfield, main_state: State) -> Cfg {
     cfg.insert_basic_block(
         Label::Main,
         BasicBlock {
+            instructions: Vec::new(),
             terminator: Terminator::Jump(Label::State(main_state)),
         },
     );
@@ -69,20 +80,24 @@ fn parse_basic_block(playfield: &Playfield, state: State) -> BasicBlock {
         Mode::String => todo!("parsing string mode"),
     };
 
-    #[expect(
-        clippy::infallible_destructuring_match,
-        reason = "more item variants will be added later"
-    )]
-    let terminator = match item {
-        Item::Terminator(terminator) => terminator,
+    let (instructions, terminator) = match item {
+        Item::Instruction(instruction) => (vec![instruction], cursor.step().into()),
+        Item::Terminator(terminator) => (Vec::new(), terminator),
     };
 
-    BasicBlock { terminator }
+    BasicBlock {
+        instructions,
+        terminator,
+    }
 }
 
 /// Parses an [`Item`] from a [`Cursor`] in command mode.
 fn parse_command(cursor: Cursor<'_>) -> Item {
     match cursor.value().to_char_lossy() {
+        digit @ '0'..='9' => {
+            let value = (u32::from(digit) - u32::from('0')).into();
+            Instruction::Push(Expr::Const(Value(value))).into()
+        }
         '>' => cursor.go(Direction::Right).into(),
         '<' => cursor.go(Direction::Left).into(),
         '^' => cursor.go(Direction::Up).into(),

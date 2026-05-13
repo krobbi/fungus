@@ -2,7 +2,7 @@ mod display;
 
 use std::{collections::HashMap, vec::IntoIter};
 
-use crate::state::State;
+use crate::{state::State, value::Value};
 
 /// A control flow graph.
 #[derive(Debug)]
@@ -56,8 +56,18 @@ pub enum Label {
 /// A basic block.
 #[derive(Debug)]
 pub struct BasicBlock {
+    /// The [`Instruction`]s.
+    pub instructions: Vec<Instruction>,
+
     /// The [`Terminator`].
     pub terminator: Terminator,
+}
+
+/// An instruction which must not terminate a [`BasicBlock`].
+#[derive(Debug)]
+pub enum Instruction {
+    /// Evaluate an [`Expr`] and push its [`Value`] to the stack.
+    Push(Expr),
 }
 
 /// A [`BasicBlock`]'s terminator.
@@ -75,7 +85,8 @@ pub enum Terminator {
     /// Randomly branch to one of four [`Label`]s.
     Random(Label, Label, Label, Label),
 
-    /// Put and recompile.
+    /// Put a [`Value`] which potentially causes self-modifying code to the
+    /// [`Playfield`][crate::playfield::Playfield`].
     Put(Label),
 }
 
@@ -91,4 +102,11 @@ impl Terminator {
             }
         }
     }
+}
+
+/// An expression.
+#[derive(Debug)]
+pub enum Expr {
+    /// A constant [`Value`].
+    Const(Value),
 }

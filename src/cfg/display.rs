@@ -2,7 +2,7 @@ use std::fmt::{self, Display, Formatter, Write as _};
 
 use crate::state::{Direction, Mode, State};
 
-use super::{BasicBlock, Cfg, Label, Terminator};
+use super::{BasicBlock, Cfg, Expr, Instruction, Label, Terminator};
 
 impl Display for Cfg {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -67,7 +67,19 @@ impl Display for Direction {
 
 impl Display for BasicBlock {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        for instruction in &self.instructions {
+            writeln!(f, "{instruction}")?;
+        }
+
         write!(f, "{}", self.terminator)
+    }
+}
+
+impl Display for Instruction {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Push(expr) => write!(f, "{:8}{expr}", "push"),
+        }
     }
 }
 
@@ -85,6 +97,14 @@ impl Display for Terminator {
                 "random"
             ),
             Self::Put(label) => write!(f, "{:8}{label}", "put"),
+        }
+    }
+}
+
+impl Display for Expr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Const(value) => write!(f, "{value}"),
         }
     }
 }
