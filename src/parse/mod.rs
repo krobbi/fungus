@@ -14,8 +14,11 @@ pub fn parse_playfield(playfield: &Playfield) -> Cfg {
     parse_playfield_at(playfield, State::default())
 }
 
-/// A parsed [`Instruction`] or [`Terminator`].
+/// A parsed command.
 enum Item {
+    /// A subtraction.
+    Subtract,
+
     /// An [`Instruction`].
     Instruction(Instruction),
 
@@ -81,9 +84,18 @@ fn parse_basic_block(playfield: &Playfield, state: State) -> BasicBlock {
     };
 
     let (instructions, terminator) = match item {
-        Item::Instruction(instruction) => (vec![instruction], cursor.step().into()),
-        Item::Terminator(terminator) => (Vec::new(), terminator),
+        Item::Subtract => (
+            vec![
+                Instruction::Unary(UnOp::Negate),
+                Instruction::Assoc(AssocOp::Sum),
+            ],
+            None,
+        ),
+        Item::Instruction(instruction) => (vec![instruction], None),
+        Item::Terminator(terminator) => (Vec::new(), Some(terminator)),
     };
+
+    let terminator = terminator.unwrap_or_else(|| cursor.step().into());
 
     BasicBlock {
         instructions,
@@ -99,6 +111,7 @@ fn parse_command(cursor: Cursor<'_>) -> Item {
             Instruction::Push(Expr::Const(Value(value))).into()
         }
         '+' => Instruction::Assoc(AssocOp::Sum).into(),
+        '-' => Item::Subtract,
         '*' => Instruction::Assoc(AssocOp::Product).into(),
         '/' => Instruction::Binary(BinOp::Divide).into(),
         '%' => Instruction::Binary(BinOp::Modulo).into(),

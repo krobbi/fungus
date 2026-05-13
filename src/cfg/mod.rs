@@ -143,6 +143,9 @@ pub enum Expr {
 /// A unary operator.
 #[derive(Debug)]
 pub enum UnOp {
+    /// An arithmetic negation.
+    Negate,
+
     /// A logical negation.
     Not,
 }

@@ -120,6 +120,7 @@ impl Display for Expr {
 impl Display for UnOp {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Negate => write!(f, "-"),
             Self::Not => write!(f, "!"),
         }
     }
