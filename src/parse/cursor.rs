@@ -1,7 +1,7 @@
 use crate::{
     cfg::{Label, Terminator},
     playfield::Playfield,
-    state::{Direction, State},
+    state::{Direction, Mode, State},
     value::Value,
 };
 
@@ -43,6 +43,13 @@ impl<'ply> Cursor<'ply> {
         };
 
         self
+    }
+
+    /// Returns a copy of the `Cursor` moved forward by one cell with a
+    /// [`Mode`].
+    pub fn step_with_mode(mut self, mode: Mode) -> Self {
+        self.state.mode = mode;
+        self.step()
     }
 
     /// Returns a copy of the `Cursor` moved forward by one cell in a

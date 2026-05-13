@@ -22,7 +22,6 @@ pub enum Mode {
     Command,
 
     /// Push [`Value`][crate::value::Value]s to the stack.
-    #[expect(dead_code, reason = "variant should be used later")]
     String,
 }
 

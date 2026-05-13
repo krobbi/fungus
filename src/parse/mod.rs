@@ -77,7 +77,7 @@ fn parse_basic_block(playfield: &Playfield, state: State) -> BasicBlock {
 
     let item = match state.mode {
         Mode::Command => parse_command(cursor),
-        Mode::String => todo!("parsing string mode"),
+        Mode::String => parse_string(cursor),
     };
 
     let (instructions, terminator) = match item {
@@ -111,10 +111,22 @@ fn parse_command(cursor: Cursor<'_>) -> Item {
         }
         '_' => branch_item(cursor, Direction::Left, Direction::Right),
         '|' => branch_item(cursor, Direction::Up, Direction::Down),
+        '"' => cursor.step_with_mode(Mode::String).into(),
         '#' => cursor.step().step().into(),
         'p' => Terminator::Put(cursor.step().into()).into(),
         '@' => Terminator::Halt.into(),
         _ => cursor.step().into(),
+    }
+}
+
+/// Parses an [`Item`] from a [`Cursor`] in string mode.
+fn parse_string(cursor: Cursor<'_>) -> Item {
+    let value = cursor.value();
+
+    if value == '"'.into() {
+        cursor.step_with_mode(Mode::Command).into()
+    } else {
+        Instruction::Push(Expr::Const(value)).into()
     }
 }
 
