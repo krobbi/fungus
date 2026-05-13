@@ -78,7 +78,10 @@ impl Display for BasicBlock {
 impl Display for Instruction {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Push(expr) => write!(f, "{:8}{expr}", "push"),
+            Self::Push(expr) => write!(f, "{:16}{expr}", "push"),
+            Self::Pop => write!(f, "pop"),
+            Self::Duplicate => write!(f, "duplicate"),
+            Self::Swap => write!(f, "swap"),
         }
     }
 }
@@ -87,16 +90,16 @@ impl Display for Terminator {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Halt => write!(f, "halt"),
-            Self::Jump(label) => write!(f, "{:8}{label}", "jump"),
+            Self::Jump(label) => write!(f, "{:16}{label}", "jump"),
             Self::Branch(then_label, else_label) => {
-                write!(f, "{:8}{then_label} else {else_label}", "branch")
+                write!(f, "{:16}{then_label} else {else_label}", "branch")
             }
             Self::Random(right_label, down_label, left_label, up_label) => write!(
                 f,
-                "{:8}{right_label}, {down_label}, {left_label}, {up_label}",
+                "{:16}{right_label}, {down_label}, {left_label}, {up_label}",
                 "random"
             ),
-            Self::Put(label) => write!(f, "{:8}{label}", "put"),
+            Self::Put(label) => write!(f, "{:16}{label}", "put"),
         }
     }
 }

@@ -68,6 +68,16 @@ pub struct BasicBlock {
 pub enum Instruction {
     /// Evaluate an [`Expr`] and push its [`Value`] to the stack.
     Push(Expr),
+
+    /// Pop a [`Value`] from the stack and discard it.
+    Pop,
+
+    /// Pop a [`Value`] from the stack and push it to the stack twice.
+    Duplicate,
+
+    /// Pop two [`Value`]s from the stack and push them to the stack in reverse
+    /// order.
+    Swap,
 }
 
 /// A [`BasicBlock`]'s terminator.
