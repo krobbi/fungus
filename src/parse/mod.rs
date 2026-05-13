@@ -1,7 +1,7 @@
 mod cursor;
 
 use crate::{
-    cfg::{BasicBlock, Cfg, Expr, Instruction, Label, Terminator, UnOp},
+    cfg::{BasicBlock, BinOp, Cfg, Expr, Instruction, Label, Terminator, UnOp},
     playfield::Playfield,
     state::{Direction, Mode, State},
     value::Value,
@@ -98,7 +98,10 @@ fn parse_command(cursor: Cursor<'_>) -> Item {
             let value = (u32::from(digit) - u32::from('0')).into();
             Instruction::Push(Expr::Const(Value(value))).into()
         }
+        '/' => Instruction::Binary(BinOp::Divide).into(),
+        '%' => Instruction::Binary(BinOp::Modulo).into(),
         '!' => Instruction::Unary(UnOp::Not).into(),
+        '`' => Instruction::Binary(BinOp::Greater).into(),
         '>' => cursor.go(Direction::Right).into(),
         '<' => cursor.go(Direction::Left).into(),
         '^' => cursor.go(Direction::Up).into(),
@@ -117,6 +120,7 @@ fn parse_command(cursor: Cursor<'_>) -> Item {
         '\\' => Instruction::Swap.into(),
         '$' => Instruction::Pop.into(),
         '#' => cursor.step().step().into(),
+        'g' => Instruction::Binary(BinOp::Get).into(),
         'p' => Terminator::Put(cursor.step().into()).into(),
         '&' => Instruction::Push(Expr::InputInt).into(),
         '~' => Instruction::Push(Expr::InputChar).into(),

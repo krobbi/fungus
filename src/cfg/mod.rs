@@ -82,6 +82,11 @@ pub enum Instruction {
     /// Pop a [`Value`] from the stack, apply a [`UnOp`] to it, and push it to
     /// the stack.
     Unary(UnOp),
+
+    /// Pops a right-hand side [`Value`] from the stack, then a left-hand side
+    /// [`Value`], applies a [`BinOp`] to them, and pushes the result [`Value`]
+    /// to the stack.
+    Binary(BinOp),
 }
 
 /// A [`BasicBlock`]'s terminator.
@@ -136,4 +141,20 @@ pub enum Expr {
 pub enum UnOp {
     /// A logical negation.
     Not,
+}
+
+/// A binary operator.
+#[derive(Debug)]
+pub enum BinOp {
+    /// A quotient division.
+    Divide,
+
+    /// A remainder division.
+    Modulo,
+
+    /// A greater than comparison.
+    Greater,
+
+    /// A [`Playfield`][crate::playfield::Playfield] access.
+    Get,
 }
