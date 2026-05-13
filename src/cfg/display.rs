@@ -85,6 +85,8 @@ impl Display for Instruction {
             Self::Unary(op) => write!(f, "{:16}{op}", "unary"),
             Self::Binary(op) => write!(f, "{:16}{op}", "binary"),
             Self::Assoc(op) => write!(f, "{:16}{op}", "assoc"),
+            Self::OutputInt => write!(f, "output_int"),
+            Self::OutputChar => write!(f, "output_char"),
         }
     }
 }

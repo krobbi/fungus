@@ -91,6 +91,13 @@ pub enum Instruction {
     /// Pop two [`Value`]s from the stack, apply an [`AssocOp`] to them, and
     /// push the result [`Value`] to the stack.
     Assoc(AssocOp),
+
+    /// Pop a [`Value`] from the stack and output it as an integer with a
+    /// trailing space.
+    OutputInt,
+
+    /// Pop a [`Value`] from the stack and output it as a character.
+    OutputChar,
 }
 
 /// A [`BasicBlock`]'s terminator.
