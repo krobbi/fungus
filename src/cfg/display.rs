@@ -2,7 +2,7 @@ use std::fmt::{self, Display, Formatter, Write as _};
 
 use crate::state::{Direction, Mode, State};
 
-use super::{BasicBlock, Cfg, Expr, Instruction, Label, Terminator};
+use super::{BasicBlock, Cfg, Expr, Instruction, Label, Terminator, UnOp};
 
 impl Display for Cfg {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -82,6 +82,7 @@ impl Display for Instruction {
             Self::Pop => write!(f, "pop"),
             Self::Duplicate => write!(f, "duplicate"),
             Self::Swap => write!(f, "swap"),
+            Self::Unary(op) => write!(f, "{:16}{op}", "unary"),
         }
     }
 }
@@ -110,6 +111,14 @@ impl Display for Expr {
             Self::Const(value) => write!(f, "{value}"),
             Self::InputInt => write!(f, "input_int()"),
             Self::InputChar => write!(f, "input_char()"),
+        }
+    }
+}
+
+impl Display for UnOp {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Not => write!(f, "!"),
         }
     }
 }

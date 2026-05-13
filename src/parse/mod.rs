@@ -1,7 +1,7 @@
 mod cursor;
 
 use crate::{
-    cfg::{BasicBlock, Cfg, Expr, Instruction, Label, Terminator},
+    cfg::{BasicBlock, Cfg, Expr, Instruction, Label, Terminator, UnOp},
     playfield::Playfield,
     state::{Direction, Mode, State},
     value::Value,
@@ -98,6 +98,7 @@ fn parse_command(cursor: Cursor<'_>) -> Item {
             let value = (u32::from(digit) - u32::from('0')).into();
             Instruction::Push(Expr::Const(Value(value))).into()
         }
+        '!' => Instruction::Unary(UnOp::Not).into(),
         '>' => cursor.go(Direction::Right).into(),
         '<' => cursor.go(Direction::Left).into(),
         '^' => cursor.go(Direction::Up).into(),

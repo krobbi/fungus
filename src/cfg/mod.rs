@@ -78,6 +78,10 @@ pub enum Instruction {
     /// Pop two [`Value`]s from the stack and push them to the stack in reverse
     /// order.
     Swap,
+
+    /// Pop a [`Value`] from the stack, apply a [`UnOp`] to it, and push it to
+    /// the stack.
+    Unary(UnOp),
 }
 
 /// A [`BasicBlock`]'s terminator.
@@ -125,4 +129,11 @@ pub enum Expr {
 
     /// A character [`Value`] from user input.
     InputChar,
+}
+
+/// A unary operator.
+#[derive(Debug)]
+pub enum UnOp {
+    /// A logical negation.
+    Not,
 }
