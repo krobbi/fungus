@@ -108,6 +108,8 @@ impl Display for Expr {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Const(value) => write!(f, "{value}"),
+            Self::InputInt => write!(f, "input_int()"),
+            Self::InputChar => write!(f, "input_char()"),
         }
     }
 }

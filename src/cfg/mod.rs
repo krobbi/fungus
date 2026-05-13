@@ -119,4 +119,10 @@ impl Terminator {
 pub enum Expr {
     /// A constant [`Value`].
     Const(Value),
+
+    /// An integer [`Value`] from user input.
+    InputInt,
+
+    /// A character [`Value`] from user input.
+    InputChar,
 }

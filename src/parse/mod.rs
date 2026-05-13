@@ -117,6 +117,8 @@ fn parse_command(cursor: Cursor<'_>) -> Item {
         '$' => Instruction::Pop.into(),
         '#' => cursor.step().step().into(),
         'p' => Terminator::Put(cursor.step().into()).into(),
+        '&' => Instruction::Push(Expr::InputInt).into(),
+        '~' => Instruction::Push(Expr::InputChar).into(),
         '@' => Terminator::Halt.into(),
         _ => cursor.step().into(),
     }
