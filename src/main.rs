@@ -1,6 +1,7 @@
 mod cfg;
 mod config;
 mod errors;
+mod optimize;
 mod parse;
 mod playfield;
 mod state;
@@ -26,7 +27,8 @@ fn run() -> Result<(), FungusError> {
     let config = Config::from_cli()?;
     let source = read_source(config.source_file_path())?;
     let playfield = Playfield::new(&source)?;
-    let cfg = parse::parse_playfield(&playfield);
+    let mut cfg = parse::parse_playfield(&playfield);
+    optimize::optimize_cfg(&mut cfg);
 
     if config.should_display_program() {
         println!("{cfg}");
