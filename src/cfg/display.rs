@@ -2,7 +2,7 @@ use std::fmt::{self, Display, Formatter, Write as _};
 
 use crate::state::{Direction, Mode, State};
 
-use super::{BasicBlock, BinOp, Cfg, Expr, Instruction, Label, Terminator, UnOp};
+use super::{AssocOp, BasicBlock, BinOp, Cfg, Expr, Instruction, Label, Terminator, UnOp};
 
 impl Display for Cfg {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -84,6 +84,7 @@ impl Display for Instruction {
             Self::Swap => write!(f, "swap"),
             Self::Unary(op) => write!(f, "{:16}{op}", "unary"),
             Self::Binary(op) => write!(f, "{:16}{op}", "binary"),
+            Self::Assoc(op) => write!(f, "{:16}{op}", "assoc"),
         }
     }
 }
@@ -131,6 +132,15 @@ impl Display for BinOp {
             Self::Modulo => write!(f, "%"),
             Self::Greater => write!(f, ">"),
             Self::Get => write!(f, "get"),
+        }
+    }
+}
+
+impl Display for AssocOp {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Sum => write!(f, "+"),
+            Self::Product => write!(f, "*"),
         }
     }
 }

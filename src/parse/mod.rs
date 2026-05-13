@@ -1,7 +1,7 @@
 mod cursor;
 
 use crate::{
-    cfg::{BasicBlock, BinOp, Cfg, Expr, Instruction, Label, Terminator, UnOp},
+    cfg::{AssocOp, BasicBlock, BinOp, Cfg, Expr, Instruction, Label, Terminator, UnOp},
     playfield::Playfield,
     state::{Direction, Mode, State},
     value::Value,
@@ -98,6 +98,8 @@ fn parse_command(cursor: Cursor<'_>) -> Item {
             let value = (u32::from(digit) - u32::from('0')).into();
             Instruction::Push(Expr::Const(Value(value))).into()
         }
+        '+' => Instruction::Assoc(AssocOp::Sum).into(),
+        '*' => Instruction::Assoc(AssocOp::Product).into(),
         '/' => Instruction::Binary(BinOp::Divide).into(),
         '%' => Instruction::Binary(BinOp::Modulo).into(),
         '!' => Instruction::Unary(UnOp::Not).into(),

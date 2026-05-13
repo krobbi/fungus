@@ -83,10 +83,14 @@ pub enum Instruction {
     /// the stack.
     Unary(UnOp),
 
-    /// Pops a right-hand side [`Value`] from the stack, then a left-hand side
-    /// [`Value`], applies a [`BinOp`] to them, and pushes the result [`Value`]
-    /// to the stack.
+    /// Pop a right-hand side [`Value`] from the stack, then a left-hand side
+    /// [`Value`], apply a [`BinOp`] to them, and push the result [`Value`] to
+    /// the stack.
     Binary(BinOp),
+
+    /// Pop two [`Value`]s from the stack, apply an [`AssocOp`] to them, and
+    /// push the result [`Value`] to the stack.
+    Assoc(AssocOp),
 }
 
 /// A [`BasicBlock`]'s terminator.
@@ -157,4 +161,14 @@ pub enum BinOp {
 
     /// A [`Playfield`][crate::playfield::Playfield] access.
     Get,
+}
+
+/// An associative and commutative operator.
+#[derive(Debug)]
+pub enum AssocOp {
+    /// A sum.
+    Sum,
+
+    /// A product.
+    Product,
 }
