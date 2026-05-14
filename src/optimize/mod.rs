@@ -15,6 +15,6 @@ pub fn optimize_cfg(cfg: &mut Cfg) {
 }
 
 /// Runs an optimization pass on a [`Cfg`] with a [`Context`].
-const fn run_pass(cfg: &mut Cfg, ctx: &mut Context) {
+fn run_pass(cfg: &mut Cfg, ctx: &mut Context) {
     steps::run_all_steps(cfg, ctx);
 }

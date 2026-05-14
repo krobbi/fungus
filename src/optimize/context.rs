@@ -20,7 +20,6 @@ impl Context {
     }
 
     /// Marks a change to the [`Cfg`][crate::cfg::Cfg].
-    #[expect(dead_code, reason = "function should be used later")]
     pub const fn mark_change(&mut self) {
         self.should_run_pass = true;
     }

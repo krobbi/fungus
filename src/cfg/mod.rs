@@ -1,6 +1,6 @@
 mod display;
 
-use std::{collections::HashMap, vec::IntoIter};
+use std::collections::HashMap;
 
 use crate::{state::State, value::Value};
 
@@ -25,10 +25,16 @@ impl Cfg {
     }
 
     /// Returns a sorted [`Iterator`] over the `Cfg`'s [`Label`]s.
-    pub fn labels(&self) -> IntoIter<Label> {
-        let mut labels: Vec<_> = self.basic_blocks.keys().copied().collect();
+    pub fn labels(&self) -> impl Iterator<Item = Label> {
+        let mut labels: Vec<_> = self.labels_unstable().collect();
         labels.sort_unstable();
         labels.into_iter()
+    }
+
+    /// Returns an [`Iterator`] over the `Cfg`'s [`Label`]s in an arbitrary
+    /// order.
+    pub fn labels_unstable(&self) -> impl Iterator<Item = Label> {
+        self.basic_blocks.keys().copied()
     }
 
     /// Returns a reference to a [`BasicBlock`] from its [`Label`].
@@ -36,10 +42,24 @@ impl Cfg {
         &self.basic_blocks[&label]
     }
 
+    /// Returns a mutable reference to a [`BasicBlock`] from its [`Label`].
+    pub fn basic_block_mut(&mut self, label: Label) -> &mut BasicBlock {
+        self.basic_blocks
+            .get_mut(&label)
+            .expect("label should exist")
+    }
+
     /// Inserts a [`BasicBlock`] into the `Cfg` with a [`Label`].
     pub fn insert_basic_block(&mut self, label: Label, basic_block: BasicBlock) {
         let old_basic_block = self.basic_blocks.insert(label, basic_block);
         debug_assert!(old_basic_block.is_none(), "label already exists");
+    }
+
+    /// Removes and returns a [`BasicBlock`] from the `Cfg` from its [`Label`].
+    pub fn remove_basic_block(&mut self, label: Label) -> BasicBlock {
+        self.basic_blocks
+            .remove(&label)
+            .expect("label should exist")
     }
 }
 
