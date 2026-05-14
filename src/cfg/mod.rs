@@ -49,6 +49,12 @@ impl Cfg {
             .expect("label should exist")
     }
 
+    /// Returns an [`Iterator`] over mutable references to the `Cfg`'s
+    /// [`BasicBlock`]s in an arbitrary order.
+    pub fn basic_blocks_mut_unstable(&mut self) -> impl Iterator<Item = &mut BasicBlock> {
+        self.basic_blocks.values_mut()
+    }
+
     /// Inserts a [`BasicBlock`] into the `Cfg` with a [`Label`].
     pub fn insert_basic_block(&mut self, label: Label, basic_block: BasicBlock) {
         let old_basic_block = self.basic_blocks.insert(label, basic_block);
