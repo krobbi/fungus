@@ -39,13 +39,11 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
     use Instruction::{Assoc, Binary, Duplicate, Pop, Push, Swap, Unary};
 
     let peephole = match peephole {
-        // * Pushing a value to the stack with no side effects and then popping
-        //   it does nothing.
-        // * Swapping twice does nothing.
-        // * Negating twice does nothing.
-        [Push(Expr::Const(_)) | Duplicate, Pop]
-        | [Swap, Swap]
-        | [Unary(UnOp::Negate), Unary(UnOp::Negate)] => vec![],
+        // * Expressions can be swapped if at least one expression has no side
+        //   effects.
+        [Push(a), Push(b), Swap] if a.is_read_only() || b.is_read_only() => {
+            vec![Push(b.clone()), Push(a.clone())]
+        }
 
         // * Build binary expressions.
         [Push(lhs), Push(rhs), Binary(op)] => vec![Push(Expr::Binary(
@@ -59,8 +57,21 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
             vec![Push(Expr::Assoc(*op, vec![lhs.clone(), rhs.clone()]))]
         }
 
+        // * Popping an expression without side effects does nothing.
+        [Push(expr), Pop] if expr.is_read_only() => vec![],
+
+        // * A duplicated constant can be replaced with itself.
+        [Push(Expr::Const(value)), Duplicate] => {
+            vec![Push(Expr::Const(*value)), Push(Expr::Const(*value))]
+        }
+
         // * Build unary expressions.
         [Push(rhs), Unary(op)] => vec![Push(Expr::Unary(*op, Box::new(rhs.clone())))],
+
+        // * Popping a duplicated value does nothing.
+        // * Swapping twice does nothing.
+        // * Negating twice does nothing.
+        [Duplicate, Pop] | [Swap, Swap] | [Unary(UnOp::Negate), Unary(UnOp::Negate)] => vec![],
 
         // * Swapping after duplicating is unnecessary.
         [Duplicate, Swap] => vec![Duplicate],
