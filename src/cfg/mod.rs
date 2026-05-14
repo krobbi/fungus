@@ -84,7 +84,7 @@ pub struct BasicBlock {
 }
 
 /// An instruction which must not terminate a [`BasicBlock`].
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Instruction {
     /// Evaluate an [`Expr`] and push its [`Value`] to the stack.
     Push(Expr),
@@ -121,7 +121,7 @@ pub enum Instruction {
 }
 
 /// A [`BasicBlock`]'s terminator.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Terminator {
     /// Halt execution.
     Halt,
@@ -155,7 +155,7 @@ impl Terminator {
 }
 
 /// An expression.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Expr {
     /// A constant [`Value`].
     Const(Value),
@@ -168,7 +168,7 @@ pub enum Expr {
 }
 
 /// A unary operator.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum UnOp {
     /// An arithmetic negation.
     Negate,
@@ -178,7 +178,7 @@ pub enum UnOp {
 }
 
 /// A binary operator.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum BinOp {
     /// A quotient division.
     Divide,
@@ -194,7 +194,7 @@ pub enum BinOp {
 }
 
 /// An associative and commutative operator.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum AssocOp {
     /// A sum.
     Sum,
