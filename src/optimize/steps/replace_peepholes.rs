@@ -47,6 +47,21 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         | [Swap, Swap]
         | [Unary(UnOp::Negate), Unary(UnOp::Negate)] => vec![],
 
+        // * Build binary expressions.
+        [Push(lhs), Push(rhs), Binary(op)] => vec![Push(Expr::Binary(
+            *op,
+            Box::new(lhs.clone()),
+            Box::new(rhs.clone()),
+        ))],
+
+        // * Build associative expressions.
+        [Push(lhs), Push(rhs), Assoc(op)] => {
+            vec![Push(Expr::Assoc(*op, vec![lhs.clone(), rhs.clone()]))]
+        }
+
+        // * Build unary expressions.
+        [Push(rhs), Unary(op)] => vec![Push(Expr::Unary(*op, Box::new(rhs.clone())))],
+
         // * Swapping after duplicating is unnecessary.
         [Duplicate, Swap] => vec![Duplicate],
 

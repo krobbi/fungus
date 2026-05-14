@@ -171,6 +171,15 @@ pub enum Expr {
 
     /// A character [`Value`] from user input.
     InputChar,
+
+    /// A unary expression.
+    Unary(UnOp, Box<Self>),
+
+    /// A binary expression.
+    Binary(BinOp, Box<Self>, Box<Self>),
+
+    /// An associative expression.
+    Assoc(AssocOp, Vec<Self>),
 }
 
 /// A unary operator.

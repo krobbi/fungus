@@ -115,6 +115,9 @@ impl Display for Expr {
             Self::Const(value) => write!(f, "{value}"),
             Self::InputInt => write!(f, "input_int()"),
             Self::InputChar => write!(f, "input_char()"),
+            Self::Unary(op, rhs) => fmt_unary_expr(f, *op, rhs),
+            Self::Binary(op, lhs, rhs) => fmt_binary_expr(f, *op, lhs, rhs),
+            Self::Assoc(op, args) => fmt_assoc_expr(f, *op, args),
         }
     }
 }
@@ -144,6 +147,45 @@ impl Display for AssocOp {
         match self {
             Self::Sum => write!(f, "+"),
             Self::Product => write!(f, "*"),
+        }
+    }
+}
+
+/// Formats a unary [`Expr`] with a [`Formatter`].
+fn fmt_unary_expr(f: &mut Formatter<'_>, op: UnOp, rhs: &Expr) -> fmt::Result {
+    match op {
+        UnOp::Negate => {
+            if matches!(rhs, Expr::Const(_)) {
+                write!(f, "{op}({rhs})")
+            } else {
+                write!(f, "{op}{rhs}")
+            }
+        }
+        UnOp::Not => write!(f, "{op}{rhs}"),
+    }
+}
+
+/// Formats a binary [`Expr`] with a [`Formatter`].
+fn fmt_binary_expr(f: &mut Formatter<'_>, op: BinOp, lhs: &Expr, rhs: &Expr) -> fmt::Result {
+    match op {
+        BinOp::Get => write!(f, "{op}({lhs}, {rhs})"),
+        _ => write!(f, "({lhs} {op} {rhs})"),
+    }
+}
+
+/// Formats an associative [`Expr`] with a [`Formatter`].
+fn fmt_assoc_expr(f: &mut Formatter<'_>, op: AssocOp, args: &[Expr]) -> fmt::Result {
+    match args {
+        [] => write!(f, "(... {op} ...)"),
+        [lhs] => write!(f, "({lhs} {op} ...)"),
+        [lhs, rest @ ..] => {
+            write!(f, "({lhs}")?;
+
+            for arg in rest {
+                write!(f, " {op} {arg}")?;
+            }
+
+            write!(f, ")")
         }
     }
 }
