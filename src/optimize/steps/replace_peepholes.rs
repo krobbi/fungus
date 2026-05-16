@@ -79,8 +79,12 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         // * A value subtracted from itself is always zero.
         // * A value remainder itself is always zero.
         // * A value is never greater than itself.
+        // * A value is never less than itself.
         [Duplicate, Unary(UnOp::Negate), Assoc(AssocOp::Sum)]
-        | [Duplicate, Binary(BinOp::Modulo | BinOp::Greater)] => {
+        | [
+            Duplicate,
+            Binary(BinOp::Modulo | BinOp::Greater | BinOp::Less),
+        ] => {
             vec![Pop, Push(Expr::Const(Value(0)))]
         }
 
@@ -93,6 +97,10 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         // * No binary operators have any side effects. Popping the result of a
         //   binary operation can be replaced with popping its operands.
         [Swap, Pop, Pop] | [Binary(_) | Assoc(_), Pop] => vec![Pop, Pop],
+
+        // * Swapping before a comparison reverses it.
+        [Swap, Binary(BinOp::Greater)] => vec![Binary(BinOp::Less)],
+        [Swap, Binary(BinOp::Less)] => vec![Binary(BinOp::Greater)],
 
         // * Swapping before a commutative operation is unnecessary.
         [Swap, Assoc(op)] => vec![Assoc(*op)],
@@ -115,7 +123,7 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
 
         // * A Boolean cast on a Boolean value is unnecessary.
         [
-            instruction @ (Unary(UnOp::Not) | Binary(BinOp::Greater)),
+            instruction @ (Unary(UnOp::Not) | Binary(BinOp::Greater | BinOp::Less)),
             Unary(UnOp::Bool),
         ] => vec![instruction.clone()],
 

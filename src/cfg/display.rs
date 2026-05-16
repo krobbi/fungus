@@ -138,6 +138,7 @@ impl Display for BinOp {
             Self::Divide => write!(f, "/"),
             Self::Modulo => write!(f, "%"),
             Self::Greater => write!(f, ">"),
+            Self::Less => write!(f, "<"),
             Self::Get => write!(f, "get"),
         }
     }

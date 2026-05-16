@@ -207,6 +207,9 @@ pub enum BinOp {
     /// A greater than comparison.
     Greater,
 
+    /// A less than comparison.
+    Less,
+
     /// A [`Playfield`][crate::playfield::Playfield] access.
     Get,
 }
