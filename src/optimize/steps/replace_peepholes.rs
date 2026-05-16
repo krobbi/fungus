@@ -88,6 +88,12 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
             vec![Pop, Push(Expr::Const(Value(0)))]
         }
 
+        // * A value is always greater than or equal to itself.
+        // * A value is always less than or equal to itself.
+        [Duplicate, Binary(BinOp::GreaterEqual | BinOp::LessEqual)] => {
+            vec![Pop, Push(Expr::Const(Value(1)))]
+        }
+
         // * Adding a value to itself is the same as multiplying by 2.
         [Duplicate, Assoc(AssocOp::Sum)] => {
             vec![Push(Expr::Const(Value(2))), Assoc(AssocOp::Product)]
@@ -99,8 +105,19 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         [Swap, Pop, Pop] | [Binary(_) | Assoc(_), Pop] => vec![Pop, Pop],
 
         // * Swapping before a comparison reverses it.
-        [Swap, Binary(BinOp::Greater)] => vec![Binary(BinOp::Less)],
-        [Swap, Binary(BinOp::Less)] => vec![Binary(BinOp::Greater)],
+        // * Not after a comparison inverts it.
+        [Swap, Binary(BinOp::Greater)] | [Binary(BinOp::GreaterEqual), Unary(UnOp::Not)] => {
+            vec![Binary(BinOp::Less)]
+        }
+        [Swap, Binary(BinOp::GreaterEqual)] | [Binary(BinOp::Greater), Unary(UnOp::Not)] => {
+            vec![Binary(BinOp::LessEqual)]
+        }
+        [Swap, Binary(BinOp::Less)] | [Binary(BinOp::LessEqual), Unary(UnOp::Not)] => {
+            vec![Binary(BinOp::Greater)]
+        }
+        [Swap, Binary(BinOp::LessEqual)] | [Binary(BinOp::Less), Unary(UnOp::Not)] => {
+            vec![Binary(BinOp::GreaterEqual)]
+        }
 
         // * Swapping before a commutative operation is unnecessary.
         [Swap, Assoc(op)] => vec![Assoc(*op)],
@@ -123,7 +140,10 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
 
         // * A Boolean cast on a Boolean value is unnecessary.
         [
-            instruction @ (Unary(UnOp::Not) | Binary(BinOp::Greater | BinOp::Less)),
+            instruction @ (Unary(UnOp::Not)
+            | Binary(
+                BinOp::Greater | BinOp::GreaterEqual | BinOp::Less | BinOp::LessEqual,
+            )),
             Unary(UnOp::Bool),
         ] => vec![instruction.clone()],
 

@@ -124,32 +124,40 @@ impl Display for Expr {
 
 impl Display for UnOp {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Negate => write!(f, "-"),
-            Self::Bool => write!(f, "bool"),
-            Self::Not => write!(f, "!"),
-        }
+        let symbol = match self {
+            Self::Negate => "-",
+            Self::Bool => "bool",
+            Self::Not => "!",
+        };
+
+        write!(f, "{symbol}")
     }
 }
 
 impl Display for BinOp {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Divide => write!(f, "/"),
-            Self::Modulo => write!(f, "%"),
-            Self::Greater => write!(f, ">"),
-            Self::Less => write!(f, "<"),
-            Self::Get => write!(f, "get"),
-        }
+        let symbol = match self {
+            Self::Divide => "/",
+            Self::Modulo => "%",
+            Self::Greater => ">",
+            Self::GreaterEqual => ">=",
+            Self::Less => "<",
+            Self::LessEqual => "<=",
+            Self::Get => "get",
+        };
+
+        write!(f, "{symbol}")
     }
 }
 
 impl Display for AssocOp {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Sum => write!(f, "+"),
-            Self::Product => write!(f, "*"),
-        }
+        let symbol = match self {
+            Self::Sum => "+",
+            Self::Product => "*",
+        };
+
+        write!(f, "{symbol}")
     }
 }
 

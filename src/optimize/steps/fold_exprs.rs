@@ -67,7 +67,12 @@ fn fold_expr_bool(rhs: Expr, ctx: &mut Context) -> Expr {
     let folded_expr = match rhs {
         Expr::Const(value) => Expr::Const(value.is_non_zero().into()),
         Expr::Unary(UnOp::Negate | UnOp::Bool, rhs) => Expr::Unary(UnOp::Bool, rhs),
-        Expr::Unary(UnOp::Not, _) | Expr::Binary(BinOp::Greater | BinOp::Less, _, _) => rhs,
+        Expr::Unary(UnOp::Not, _)
+        | Expr::Binary(
+            BinOp::Greater | BinOp::GreaterEqual | BinOp::Less | BinOp::LessEqual,
+            _,
+            _,
+        ) => rhs,
         _ => return Expr::Unary(UnOp::Bool, Box::new(rhs)),
     };
 
