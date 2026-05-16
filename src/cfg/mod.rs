@@ -124,6 +124,9 @@ pub enum Instruction {
 
     /// Pop a [`Value`] from the stack and output it as a character.
     OutputChar,
+
+    /// Print a [`String`].
+    Print(String),
 }
 
 /// A [`BasicBlock`]'s terminator.

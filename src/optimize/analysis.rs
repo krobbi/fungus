@@ -1,4 +1,20 @@
-use crate::cfg::Expr;
+use crate::cfg::{Expr, Instruction};
+
+impl Instruction {
+    /// Returns [`true`] if the [`Instruction`] has no visible side effects.
+    pub fn is_quiet(&self) -> bool {
+        match self {
+            Self::Push(expr) => expr.is_read_only(),
+            Self::Pop
+            | Self::Duplicate
+            | Self::Swap
+            | Self::Unary(_)
+            | Self::Binary(_)
+            | Self::Assoc(_) => false,
+            Self::OutputInt | Self::OutputChar | Self::Print(_) => true,
+        }
+    }
+}
 
 impl Expr {
     /// Returns [`true`] if the [`Expr`] has no side effects.

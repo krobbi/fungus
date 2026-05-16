@@ -36,7 +36,9 @@ fn optimize_window(instructions: &mut Vec<Instruction>, window_size: usize, ctx:
 /// Returns an optimized equivalent of a peephole of [`Instruction`]s. This
 /// function returns [`None`] if the peephole could not be optimized.
 fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
-    use Instruction::{Assoc, Binary, Duplicate, Pop, Push, Swap, Unary};
+    use Instruction::{
+        Assoc, Binary, Duplicate, OutputChar, OutputInt, Pop, Print, Push, Swap, Unary,
+    };
 
     let peephole = match peephole {
         // * Expressions can be swapped if at least one expression has no side
@@ -67,6 +69,10 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
 
         // * Build unary expressions.
         [Push(rhs), Unary(op)] => vec![Push(Expr::Unary(*op, Box::new(rhs.clone())))],
+
+        // * Build print statements.
+        [Push(Expr::Const(value)), OutputInt] => vec![Print(format!("{value} "))],
+        [Push(Expr::Const(value)), OutputChar] => vec![Print(value.to_char_lossy().to_string())],
 
         // * Popping a duplicated value does nothing.
         // * Swapping twice does nothing.
@@ -146,6 +152,12 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
             )),
             Unary(UnOp::Bool),
         ] => vec![instruction.clone()],
+
+        // * Concatenate print statements.
+        [Print(prefix), Print(suffix)] => vec![Print(format!("{prefix}{suffix}"))],
+
+        // * Bubble print statements.
+        [quiet, print @ Print(_)] if quiet.is_quiet() => vec![print.clone(), quiet.clone()],
 
         _ => return None,
     };
