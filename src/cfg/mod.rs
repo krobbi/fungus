@@ -183,7 +183,7 @@ pub enum Expr {
 }
 
 /// A unary operator.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum UnOp {
     /// An arithmetic negation.
     Negate,
@@ -193,7 +193,7 @@ pub enum UnOp {
 }
 
 /// A binary operator.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BinOp {
     /// A quotient division.
     Divide,
@@ -209,7 +209,7 @@ pub enum BinOp {
 }
 
 /// An associative and commutative operator.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AssocOp {
     /// A sum.
     Sum,

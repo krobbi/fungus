@@ -1,6 +1,6 @@
 use std::{
     fmt::{self, Display, Formatter},
-    ops::{Neg, Not},
+    ops::{Add, Mul, Neg, Not},
 };
 
 /// A Befunge value.
@@ -51,6 +51,22 @@ impl Not for Value {
 
     fn not(self) -> Self::Output {
         (!self.is_non_zero()).into()
+    }
+}
+
+impl Add for Value {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self(self.0.wrapping_add(rhs.0))
+    }
+}
+
+impl Mul for Value {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        Self(self.0.wrapping_mul(rhs.0))
     }
 }
 

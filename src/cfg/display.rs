@@ -117,7 +117,7 @@ impl Display for Expr {
             Self::InputChar => write!(f, "input_char()"),
             Self::Unary(op, rhs) => fmt_unary_expr(f, *op, rhs),
             Self::Binary(op, lhs, rhs) => fmt_binary_expr(f, *op, lhs, rhs),
-            Self::Assoc(op, args) => fmt_assoc_expr(f, *op, args),
+            Self::Assoc(op, terms) => fmt_assoc_expr(f, *op, terms),
         }
     }
 }
@@ -174,8 +174,8 @@ fn fmt_binary_expr(f: &mut Formatter<'_>, op: BinOp, lhs: &Expr, rhs: &Expr) -> 
 }
 
 /// Formats an associative [`Expr`] with a [`Formatter`].
-fn fmt_assoc_expr(f: &mut Formatter<'_>, op: AssocOp, args: &[Expr]) -> fmt::Result {
-    match args {
+fn fmt_assoc_expr(f: &mut Formatter<'_>, op: AssocOp, terms: &[Expr]) -> fmt::Result {
+    match terms {
         [] => write!(f, "(... {op} ...)"),
         [lhs] => write!(f, "({lhs} {op} ...)"),
         [lhs, rest @ ..] => {
