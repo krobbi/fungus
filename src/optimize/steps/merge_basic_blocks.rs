@@ -3,7 +3,8 @@ use crate::{
     optimize::context::Context,
 };
 
-/// Merges basic blocks.
+/// Merges [`BasicBlock`][crate::cfg::BasicBlock]s with a single unconditional
+/// predecessor into their predecessors.
 pub fn run_step(cfg: &mut Cfg, ctx: &mut Context) {
     while let Some((source, target)) = find_mergeable_edge(cfg) {
         let mut target = cfg.remove_basic_block(target);
