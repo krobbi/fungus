@@ -1,6 +1,6 @@
 mod display;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::{state::State, value::Value};
 
@@ -82,6 +82,9 @@ pub enum Label {
 /// A basic block.
 #[derive(Debug)]
 pub struct BasicBlock {
+    /// The [`Playfield`][crate::playfield::Playfield] positions.
+    pub positions: HashSet<(u16, u16)>,
+
     /// The [`Instruction`]s.
     pub instructions: Vec<Instruction>,
 

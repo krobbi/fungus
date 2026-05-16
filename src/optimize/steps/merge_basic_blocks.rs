@@ -10,6 +10,7 @@ pub fn run_step(cfg: &mut Cfg, ctx: &mut Context) {
         let mut target = cfg.remove_basic_block(target);
         let source = cfg.basic_block_mut(source);
 
+        source.positions.extend(target.positions.iter());
         source.instructions.append(&mut target.instructions);
         source.terminator = target.terminator;
         ctx.mark_change();

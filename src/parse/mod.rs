@@ -1,5 +1,7 @@
 mod cursor;
 
+use std::collections::HashSet;
+
 use crate::{
     cfg::{AssocOp, BasicBlock, BinOp, Cfg, Expr, Instruction, Label, Terminator, UnOp},
     playfield::Playfield,
@@ -44,6 +46,7 @@ fn parse_playfield_at(playfield: &Playfield, main_state: State) -> Cfg {
     cfg.insert_basic_block(
         Label::Main,
         BasicBlock {
+            positions: HashSet::new(),
             instructions: Vec::new(),
             terminator: Terminator::Jump(Label::State(main_state)),
         },
@@ -96,8 +99,11 @@ fn parse_basic_block(playfield: &Playfield, state: State) -> BasicBlock {
     };
 
     let terminator = terminator.unwrap_or_else(|| cursor.step().into());
+    let mut positions = HashSet::new();
+    positions.insert((state.x, state.y));
 
     BasicBlock {
+        positions,
         instructions,
         terminator,
     }
