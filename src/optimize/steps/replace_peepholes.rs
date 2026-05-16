@@ -101,9 +101,23 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         //   unary operation can be replaced with popping its operand.
         [Unary(_), Pop] => vec![Pop],
 
-        // * Negation does not affect whether a value is non-zero, so it is
-        //   unnecessary before a not operation.
-        [Unary(UnOp::Negate), Unary(UnOp::Not)] => vec![Unary(UnOp::Not)],
+        // * Negation and Boolean casts do not affect whether a value is
+        //   non-zero, so they are unnecessary before a Boolean cast.
+        // * A double not is a Boolean cast.
+        [Unary(UnOp::Negate | UnOp::Bool), Unary(UnOp::Bool)]
+        | [Unary(UnOp::Not), Unary(UnOp::Not)] => {
+            vec![Unary(UnOp::Bool)]
+        }
+
+        // * Negation and Boolean casts do not affect whether a value is
+        //   non-zero, so they are unnecessary before a not operation.
+        [Unary(UnOp::Negate | UnOp::Bool), Unary(UnOp::Not)] => vec![Unary(UnOp::Not)],
+
+        // * A Boolean cast on a Boolean value is unnecessary.
+        [
+            instruction @ (Unary(UnOp::Not) | Binary(BinOp::Greater)),
+            Unary(UnOp::Bool),
+        ] => vec![instruction.clone()],
 
         _ => return None,
     };

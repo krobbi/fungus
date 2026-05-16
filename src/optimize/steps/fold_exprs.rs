@@ -1,7 +1,7 @@
 use std::mem;
 
 use crate::{
-    cfg::{AssocOp, Cfg, Expr, Instruction, UnOp},
+    cfg::{AssocOp, BinOp, Cfg, Expr, Instruction, UnOp},
     optimize::context::Context,
     value::Value,
 };
@@ -35,6 +35,7 @@ fn fold_expr(expr: Expr, ctx: &mut Context) -> Expr {
     match expr {
         Expr::Const(_) | Expr::InputInt | Expr::InputChar => expr,
         Expr::Unary(UnOp::Negate, rhs) => fold_expr_negate(*rhs, ctx),
+        Expr::Unary(UnOp::Bool, rhs) => fold_expr_bool(*rhs, ctx),
         Expr::Unary(UnOp::Not, rhs) => fold_expr_not(*rhs, ctx),
         Expr::Binary(op, lhs, rhs) => {
             let lhs = fold_expr(*lhs, ctx);
@@ -51,8 +52,23 @@ fn fold_expr_negate(rhs: Expr, ctx: &mut Context) -> Expr {
 
     let folded_expr = match rhs {
         Expr::Const(value) => Expr::Const(-value),
-        Expr::Unary(UnOp::Negate, double_negated_expr) => *double_negated_expr,
+        Expr::Unary(UnOp::Negate, rhs) => *rhs,
         _ => return Expr::Unary(UnOp::Negate, Box::new(rhs)),
+    };
+
+    ctx.mark_change();
+    folded_expr
+}
+
+/// Folds a unary Boolean cast [`Expr`].
+fn fold_expr_bool(rhs: Expr, ctx: &mut Context) -> Expr {
+    let rhs = fold_expr(rhs, ctx);
+
+    let folded_expr = match rhs {
+        Expr::Const(value) => Expr::Const(value.is_non_zero().into()),
+        Expr::Unary(UnOp::Negate | UnOp::Bool, rhs) => Expr::Unary(UnOp::Bool, rhs),
+        Expr::Unary(UnOp::Not, _) | Expr::Binary(BinOp::Greater, _, _) => rhs,
+        _ => return Expr::Unary(UnOp::Bool, Box::new(rhs)),
     };
 
     ctx.mark_change();
@@ -65,7 +81,8 @@ fn fold_expr_not(rhs: Expr, ctx: &mut Context) -> Expr {
 
     let folded_expr = match rhs {
         Expr::Const(value) => Expr::Const(!value),
-        Expr::Unary(UnOp::Negate, negated_expr) => Expr::Unary(UnOp::Not, negated_expr),
+        Expr::Unary(UnOp::Negate | UnOp::Bool, rhs) => Expr::Unary(UnOp::Not, rhs),
+        Expr::Unary(UnOp::Not, rhs) => Expr::Unary(UnOp::Bool, rhs),
         _ => return Expr::Unary(UnOp::Not, Box::new(rhs)),
     };
 

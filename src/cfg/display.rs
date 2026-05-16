@@ -126,6 +126,7 @@ impl Display for UnOp {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Negate => write!(f, "-"),
+            Self::Bool => write!(f, "bool"),
             Self::Not => write!(f, "!"),
         }
     }
@@ -153,15 +154,9 @@ impl Display for AssocOp {
 
 /// Formats a unary [`Expr`] with a [`Formatter`].
 fn fmt_unary_expr(f: &mut Formatter<'_>, op: UnOp, rhs: &Expr) -> fmt::Result {
-    match op {
-        UnOp::Negate => {
-            if matches!(rhs, Expr::Const(_)) {
-                write!(f, "{op}({rhs})")
-            } else {
-                write!(f, "{op}{rhs}")
-            }
-        }
-        UnOp::Not => write!(f, "{op}{rhs}"),
+    match (op, rhs) {
+        (UnOp::Negate, Expr::Const(_)) | (UnOp::Bool, _) => write!(f, "{op}({rhs})"),
+        (_, _) => write!(f, "{op}{rhs}"),
     }
 }
 

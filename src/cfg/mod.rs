@@ -188,6 +188,9 @@ pub enum UnOp {
     /// An arithmetic negation.
     Negate,
 
+    /// A Boolean cast.
+    Bool,
+
     /// A logical negation.
     Not,
 }
