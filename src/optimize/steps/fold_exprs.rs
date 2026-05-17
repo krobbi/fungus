@@ -37,11 +37,7 @@ fn fold_expr(expr: Expr, ctx: &mut Context) -> Expr {
         Expr::Unary(UnOp::Negate, rhs) => fold_expr_negate(*rhs, ctx),
         Expr::Unary(UnOp::Bool, rhs) => fold_expr_bool(*rhs, ctx),
         Expr::Unary(UnOp::Not, rhs) => fold_expr_not(*rhs, ctx),
-        Expr::Binary(op, lhs, rhs) => {
-            let lhs = fold_expr(*lhs, ctx);
-            let rhs = fold_expr(*rhs, ctx);
-            Expr::Binary(op, Box::new(lhs), Box::new(rhs))
-        }
+        Expr::Binary(op, lhs, rhs) => fold_expr_binary(op, *lhs, *rhs, ctx),
         Expr::Assoc(op, terms) => fold_expr_assoc(op, terms, ctx),
     }
 }
@@ -88,7 +84,34 @@ fn fold_expr_not(rhs: Expr, ctx: &mut Context) -> Expr {
         Expr::Const(value) => Expr::Const(!value),
         Expr::Unary(UnOp::Negate | UnOp::Bool, rhs) => Expr::Unary(UnOp::Not, rhs),
         Expr::Unary(UnOp::Not, rhs) => Expr::Unary(UnOp::Bool, rhs),
+        Expr::Binary(BinOp::Greater, lhs, rhs) => Expr::Binary(BinOp::LessEqual, lhs, rhs),
+        Expr::Binary(BinOp::GreaterEqual, lhs, rhs) => Expr::Binary(BinOp::Less, lhs, rhs),
+        Expr::Binary(BinOp::Less, lhs, rhs) => Expr::Binary(BinOp::GreaterEqual, lhs, rhs),
+        Expr::Binary(BinOp::LessEqual, lhs, rhs) => Expr::Binary(BinOp::Greater, lhs, rhs),
         _ => return Expr::Unary(UnOp::Not, Box::new(rhs)),
+    };
+
+    ctx.mark_change();
+    folded_expr
+}
+
+/// Folds a binary [`Expr`].
+fn fold_expr_binary(op: BinOp, lhs: Expr, rhs: Expr, ctx: &mut Context) -> Expr {
+    let lhs = fold_expr(lhs, ctx);
+    let rhs = fold_expr(rhs, ctx);
+
+    let folded_expr = match (op, lhs, rhs) {
+        (BinOp::Divide, Expr::Const(lhs), Expr::Const(rhs)) => Expr::Const(lhs / rhs),
+        (BinOp::Divide, lhs, Expr::Const(Value(-1))) => Expr::Unary(UnOp::Negate, Box::new(lhs)),
+        (BinOp::Divide, lhs, Expr::Const(Value(1))) => lhs,
+        (BinOp::Modulo, Expr::Const(lhs), Expr::Const(rhs)) => Expr::Const(lhs % rhs),
+        (BinOp::Greater, Expr::Const(lhs), Expr::Const(rhs)) => Expr::Const((lhs > rhs).into()),
+        (BinOp::GreaterEqual, Expr::Const(lhs), Expr::Const(rhs)) => {
+            Expr::Const((lhs >= rhs).into())
+        }
+        (BinOp::Less, Expr::Const(lhs), Expr::Const(rhs)) => Expr::Const((lhs < rhs).into()),
+        (BinOp::LessEqual, Expr::Const(lhs), Expr::Const(rhs)) => Expr::Const((lhs <= rhs).into()),
+        (_, lhs, rhs) => return Expr::Binary(op, Box::new(lhs), Box::new(rhs)),
     };
 
     ctx.mark_change();
