@@ -25,6 +25,9 @@ impl Expr {
             Self::Unary(_, rhs) => rhs.is_read_only(),
             Self::Binary(_, lhs, rhs) => lhs.is_read_only() && rhs.is_read_only(),
             Self::Assoc(_, terms) => terms.iter().all(Self::is_read_only),
+            Self::Sequence(prefix, expr) => {
+                prefix.iter().all(Self::is_read_only) && expr.is_read_only()
+            }
         }
     }
 }

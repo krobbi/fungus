@@ -133,6 +133,7 @@ impl Display for Expr {
             Self::Unary(op, rhs) => fmt_unary_expr(f, *op, rhs),
             Self::Binary(op, lhs, rhs) => fmt_binary_expr(f, *op, lhs, rhs),
             Self::Assoc(op, terms) => fmt_assoc_expr(f, *op, terms),
+            Self::Sequence(prefix, expr) => fmt_sequence_expr(f, prefix, expr),
         }
     }
 }
@@ -206,5 +207,20 @@ fn fmt_assoc_expr(f: &mut Formatter<'_>, op: AssocOp, terms: &[Expr]) -> fmt::Re
 
             write!(f, ")")
         }
+    }
+}
+
+/// Formats a sequence [`Expr`] with a [`Formatter`].
+fn fmt_sequence_expr(f: &mut Formatter<'_>, prefix: &[Expr], expr: &Expr) -> fmt::Result {
+    if prefix.is_empty() {
+        write!(f, "(..., {expr})")
+    } else {
+        write!(f, "(")?;
+
+        for prefix_expr in prefix {
+            write!(f, "{prefix_expr}, ")?;
+        }
+
+        write!(f, "{expr})")
     }
 }

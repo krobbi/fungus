@@ -39,6 +39,7 @@ fn fold_expr(expr: Expr, ctx: &mut Context) -> Expr {
         Expr::Unary(UnOp::Not, rhs) => fold_expr_not(*rhs, ctx),
         Expr::Binary(op, lhs, rhs) => fold_expr_binary(op, *lhs, *rhs, ctx),
         Expr::Assoc(op, terms) => fold_expr_assoc(op, terms, ctx),
+        Expr::Sequence(prefix, expr) => fold_expr_sequence(prefix, *expr, ctx),
     }
 }
 
@@ -102,6 +103,9 @@ fn fold_expr_binary(op: BinOp, lhs: Expr, rhs: Expr, ctx: &mut Context) -> Expr 
 
     let folded_expr = match (op, lhs, rhs) {
         (BinOp::Divide, Expr::Const(lhs), Expr::Const(rhs)) => Expr::Const(lhs / rhs),
+        (BinOp::Divide, Expr::Const(Value(0)), rhs) => {
+            Expr::Sequence(vec![rhs], Box::new(Expr::Const(Value(0))))
+        }
         (BinOp::Divide, lhs, Expr::Const(Value(-1))) => Expr::Unary(UnOp::Negate, Box::new(lhs)),
         (BinOp::Divide, lhs, Expr::Const(Value(1))) => lhs,
         (BinOp::Modulo, Expr::Const(lhs), Expr::Const(rhs)) => Expr::Const(lhs % rhs),
@@ -172,6 +176,66 @@ fn fold_expr_assoc(op: AssocOp, terms: Vec<Expr>, ctx: &mut Context) -> Expr {
             folded_terms.pop().expect("there should be one term")
         }
         _ => Expr::Assoc(op, folded_terms),
+    }
+}
+
+/// Folds a sequence [`Expr`].
+fn fold_expr_sequence(prefix: Vec<Expr>, expr: Expr, ctx: &mut Context) -> Expr {
+    let mut folded_prefix = Vec::new();
+
+    for prefix_expr in prefix {
+        let prefix_expr = fold_expr(prefix_expr, ctx);
+
+        if prefix_expr.is_read_only() {
+            // Removed a prefix expression without side effects.
+            ctx.mark_change();
+            continue;
+        }
+
+        match prefix_expr {
+            Expr::Unary(_, rhs) => {
+                folded_prefix.push(*rhs);
+
+                // Flattened a unary sub-expression.
+                ctx.mark_change();
+            }
+            Expr::Binary(_, lhs, rhs) => {
+                folded_prefix.push(*lhs);
+                folded_prefix.push(*rhs);
+
+                // Flattened a binary sub-expression.
+                ctx.mark_change();
+            }
+            Expr::Assoc(_, terms) => {
+                for term in terms {
+                    folded_prefix.push(term);
+                }
+
+                // Flattened an associative sub-expression.
+                ctx.mark_change();
+            }
+            Expr::Sequence(sub_prefix, sub_expr) => {
+                for sub_prefix_expr in sub_prefix {
+                    folded_prefix.push(sub_prefix_expr);
+                }
+
+                folded_prefix.push(*sub_expr);
+
+                // Flattened a sequence sub-expression.
+                ctx.mark_change();
+            }
+            _ => folded_prefix.push(prefix_expr),
+        }
+    }
+
+    let expr = fold_expr(expr, ctx);
+
+    if folded_prefix.is_empty() {
+        // Reduced to result expression.
+        ctx.mark_change();
+        expr
+    } else {
+        Expr::Sequence(folded_prefix, Box::new(expr))
     }
 }
 

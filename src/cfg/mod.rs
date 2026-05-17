@@ -186,6 +186,9 @@ pub enum Expr {
 
     /// An associative expression.
     Assoc(AssocOp, Vec<Self>),
+
+    /// A sequence.
+    Sequence(Vec<Self>, Box<Self>),
 }
 
 /// A unary operator.
