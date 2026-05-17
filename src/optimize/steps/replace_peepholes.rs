@@ -41,6 +41,48 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
     };
 
     let peephole = match peephole {
+        // * Dividing a value by -1 is a negation.
+        // * Multiplying a value by -1 is a negation.
+        [
+            Push(Expr::Const(Value(-1))),
+            Binary(BinOp::Divide) | Assoc(AssocOp::Product),
+        ] => vec![Unary(UnOp::Negate)],
+
+        // * A value modulo -1, 0, or 1 is always zero (by specification).
+        // * A value divided by zero is always zero (by specification).
+        // * A value multiplied by zero is always zero.
+        // * A value subtracted from itself is always zero.
+        // * A value remainder itself is always zero.
+        // * A value is never greater than itself.
+        // * A value is never less than itself.
+        [Push(Expr::Const(Value(-1..=1))), Binary(BinOp::Modulo)]
+        | [
+            Push(Expr::Const(Value(0))),
+            Binary(BinOp::Divide) | Assoc(AssocOp::Product),
+        ]
+        | [Duplicate, Unary(UnOp::Negate), Assoc(AssocOp::Sum)]
+        | [
+            Duplicate,
+            Binary(BinOp::Modulo | BinOp::Greater | BinOp::Less),
+        ] => {
+            vec![Pop, Push(Expr::Const(Value(0)))]
+        }
+
+        // * Dividing a value by 1 does nothing.
+        // * Multiplying a value by 1 does nothing.
+        // * Adding 0 to a value does nothing.
+        // * Popping a duplicated value does nothing.
+        // * Swapping twice does nothing.
+        // * Negating twice does nothing.
+        [
+            Push(Expr::Const(Value(1))),
+            Binary(BinOp::Divide) | Assoc(AssocOp::Product),
+        ]
+        | [Push(Expr::Const(Value(0))), Assoc(AssocOp::Sum)]
+        | [Duplicate, Pop]
+        | [Swap, Swap]
+        | [Unary(UnOp::Negate), Unary(UnOp::Negate)] => vec![],
+
         // * Expressions can be swapped if at least one expression has no side
         //   effects.
         [Push(a), Push(b), Swap] if a.is_read_only() || b.is_read_only() => {
@@ -74,25 +116,8 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         [Push(Expr::Const(value)), OutputInt] => vec![Print(format!("{value} "))],
         [Push(Expr::Const(value)), OutputChar] => vec![Print(value.to_char_lossy().to_string())],
 
-        // * Popping a duplicated value does nothing.
-        // * Swapping twice does nothing.
-        // * Negating twice does nothing.
-        [Duplicate, Pop] | [Swap, Swap] | [Unary(UnOp::Negate), Unary(UnOp::Negate)] => vec![],
-
         // * Swapping after duplicating is unnecessary.
         [Duplicate, Swap] => vec![Duplicate],
-
-        // * A value subtracted from itself is always zero.
-        // * A value remainder itself is always zero.
-        // * A value is never greater than itself.
-        // * A value is never less than itself.
-        [Duplicate, Unary(UnOp::Negate), Assoc(AssocOp::Sum)]
-        | [
-            Duplicate,
-            Binary(BinOp::Modulo | BinOp::Greater | BinOp::Less),
-        ] => {
-            vec![Pop, Push(Expr::Const(Value(0)))]
-        }
 
         // * A value is always greater than or equal to itself.
         // * A value is always less than or equal to itself.
