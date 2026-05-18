@@ -35,53 +35,43 @@ fn optimize_window(instructions: &mut Vec<Instruction>, window_size: usize, ctx:
 
 /// Returns an optimized equivalent of a peephole of [`Instruction`]s. This
 /// function returns [`None`] if the peephole could not be optimized.
+#[expect(clippy::too_many_lines, reason = "function is a single pattern match")]
 fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
     use Instruction::{
         Assoc, Binary, Duplicate, OutputChar, OutputInt, Pop, Print, Push, Swap, Unary,
     };
 
     let peephole = match peephole {
-        // * Dividing a value by -1 is a negation.
-        // * Multiplying a value by -1 is a negation.
-        [
-            Push(Expr::Const(Value(-1))),
-            Binary(BinOp::Divide) | Assoc(AssocOp::Product),
-        ] => vec![Unary(UnOp::Negate)],
-
-        // * A value modulo -1, 0, or 1 is always zero (by specification).
-        // * A value divided by zero is always zero (by specification).
-        // * A value multiplied by zero is always zero.
-        // * A value subtracted from itself is always zero.
-        // * A value remainder itself is always zero.
-        // * A value is never greater than itself.
-        // * A value is never less than itself.
-        [Push(Expr::Const(Value(-1..=1))), Binary(BinOp::Modulo)]
-        | [
-            Push(Expr::Const(Value(0))),
-            Binary(BinOp::Divide) | Assoc(AssocOp::Product),
-        ]
-        | [Duplicate, Unary(UnOp::Negate), Assoc(AssocOp::Sum)]
-        | [
-            Duplicate,
-            Binary(BinOp::Modulo | BinOp::Greater | BinOp::Less),
-        ] => {
-            vec![Pop, Push(Expr::Const(Value(0)))]
+        // * Dividing or multiplying a value by -1 negates it.
+        [Push(expr), Binary(BinOp::Divide) | Assoc(AssocOp::Product)]
+            if expr.eval_const() == Some(Value(-1)) =>
+        {
+            vec![Unary(UnOp::Negate), Push(expr.clone()), Pop]
         }
 
-        // * Dividing a value by 1 does nothing.
-        // * Multiplying a value by 1 does nothing.
+        // * Dividing or multiplying a value by 0 is always zero.
+        [Push(expr), Binary(BinOp::Divide) | Assoc(AssocOp::Product)]
+            if expr.eval_const() == Some(Value(0)) =>
+        {
+            vec![Push(expr.clone()), Pop, Push(Expr::Const(Value(0)))]
+        }
+
         // * Adding 0 to a value does nothing.
-        // * Popping a duplicated value does nothing.
-        // * Swapping twice does nothing.
-        // * Negating twice does nothing.
-        [
-            Push(Expr::Const(Value(1))),
-            Binary(BinOp::Divide) | Assoc(AssocOp::Product),
-        ]
-        | [Push(Expr::Const(Value(0))), Assoc(AssocOp::Sum)]
-        | [Duplicate, Pop]
-        | [Swap, Swap]
-        | [Unary(UnOp::Negate), Unary(UnOp::Negate)] => vec![],
+        [Push(expr), Assoc(AssocOp::Sum)] if expr.eval_const() == Some(Value(0)) => {
+            vec![Push(expr.clone()), Pop]
+        }
+
+        // * Dividing or multiplying a value by 1 does nothing.
+        [Push(expr), Binary(BinOp::Divide) | Assoc(AssocOp::Product)]
+            if expr.eval_const() == Some(Value(1)) =>
+        {
+            vec![Push(expr.clone()), Pop]
+        }
+
+        // * A value modulo -1, 0, or 1 is always zero.
+        [Push(expr), Binary(BinOp::Modulo)] if let Some(Value(-1..=1)) = expr.eval_const() => {
+            vec![Push(expr.clone()), Pop, Push(Expr::Const(Value(0)))]
+        }
 
         // * Expressions can be swapped if at least one expression has no side
         //   effects.
@@ -104,20 +94,49 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         // * Popping an expression without side effects does nothing.
         [Push(expr), Pop] if expr.is_read_only() => vec![],
 
+        // * Push pop push is a sequence.
+        [Push(prefix), Pop, Push(expr)] => vec![Push(Expr::Sequence(
+            vec![prefix.clone()],
+            Box::new(expr.clone()),
+        ))],
+
         // * A duplicated constant can be replaced with itself.
-        [Push(Expr::Const(value)), Duplicate] => {
-            vec![Push(Expr::Const(*value)), Push(Expr::Const(*value))]
+        [Push(expr), Duplicate] if let Some(value) = expr.eval_const() => {
+            vec![Push(expr.clone()), Push(Expr::Const(value))]
         }
 
         // * Build unary expressions.
         [Push(rhs), Unary(op)] => vec![Push(Expr::Unary(*op, Box::new(rhs.clone())))],
 
         // * Build print statements.
-        [Push(Expr::Const(value)), OutputInt] => vec![Print(format!("{value} "))],
-        [Push(Expr::Const(value)), OutputChar] => vec![Print(value.to_char_lossy().to_string())],
+        [Push(expr), OutputInt] if let Some(value) = expr.eval_const() => {
+            vec![Push(expr.clone()), Pop, Print(format!("{value} "))]
+        }
+        [Push(expr), OutputChar] if let Some(value) = expr.eval_const() => vec![
+            Push(expr.clone()),
+            Pop,
+            Print(value.to_char_lossy().to_string()),
+        ],
+
+        // * Popping a duplicated value does nothing.
+        // * Swapping twice does nothing.
+        // * Negating twice does nothing.
+        [Duplicate, Pop] | [Swap, Swap] | [Unary(UnOp::Negate), Unary(UnOp::Negate)] => vec![],
 
         // * Swapping after duplicating is unnecessary.
         [Duplicate, Swap] => vec![Duplicate],
+
+        // * A value subtracted from itself is always zero.
+        // * A value remainder itself is always zero.
+        // * A value is never greater than itself.
+        // * A value is never less than itself.
+        [Duplicate, Unary(UnOp::Negate), Assoc(AssocOp::Sum)]
+        | [
+            Duplicate,
+            Binary(BinOp::Modulo | BinOp::Greater | BinOp::Less),
+        ] => {
+            vec![Pop, Push(Expr::Const(Value(0)))]
+        }
 
         // * A value is always greater than or equal to itself.
         // * A value is always less than or equal to itself.
@@ -182,7 +201,9 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         [Print(prefix), Print(suffix)] => vec![Print(format!("{prefix}{suffix}"))],
 
         // * Bubble print statements.
-        [quiet, print @ Print(_)] if quiet.is_quiet() => vec![print.clone(), quiet.clone()],
+        [quiet, print @ Print(_)] if !matches!(quiet, Pop) && quiet.is_quiet() => {
+            vec![print.clone(), quiet.clone()]
+        }
 
         _ => return None,
     };
