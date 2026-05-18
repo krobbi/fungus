@@ -207,15 +207,11 @@ fn fold_expr_sequence(prefix: Vec<Expr>, expr: Expr, ctx: &mut Context) -> Expr 
         match prefix_expr {
             Expr::Unary(_, rhs) => {
                 folded_prefix.push(*rhs);
-
-                // Flattened a unary sub-expression.
                 ctx.mark_change();
             }
             Expr::Binary(_, lhs, rhs) => {
                 folded_prefix.push(*lhs);
                 folded_prefix.push(*rhs);
-
-                // Flattened a binary sub-expression.
                 ctx.mark_change();
             }
             Expr::Assoc(_, terms) => {
@@ -223,7 +219,6 @@ fn fold_expr_sequence(prefix: Vec<Expr>, expr: Expr, ctx: &mut Context) -> Expr 
                     folded_prefix.push(term);
                 }
 
-                // Flattened an associative sub-expression.
                 ctx.mark_change();
             }
             Expr::Sequence(sub_prefix, sub_expr) => {
@@ -232,18 +227,25 @@ fn fold_expr_sequence(prefix: Vec<Expr>, expr: Expr, ctx: &mut Context) -> Expr 
                 }
 
                 folded_prefix.push(*sub_expr);
-
-                // Flattened a sequence sub-expression.
                 ctx.mark_change();
             }
             _ => folded_prefix.push(prefix_expr),
         }
     }
 
-    let expr = fold_expr(expr, ctx);
+    let expr = match fold_expr(expr, ctx) {
+        Expr::Sequence(sub_prefix, sub_expr) => {
+            for sub_prefix_expr in sub_prefix {
+                folded_prefix.push(sub_prefix_expr);
+            }
+
+            ctx.mark_change();
+            *sub_expr
+        }
+        expr => expr,
+    };
 
     if folded_prefix.is_empty() {
-        // Reduced to result expression.
         ctx.mark_change();
         expr
     } else {
