@@ -10,8 +10,8 @@ impl Instruction {
             | Self::Swap
             | Self::Unary(_)
             | Self::Binary(_)
-            | Self::Assoc(_) => false,
-            Self::OutputInt | Self::OutputChar | Self::Print(_) => true,
+            | Self::Assoc(_) => true,
+            Self::OutputInt | Self::OutputChar | Self::Print(_) => false,
         }
     }
 }
