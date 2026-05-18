@@ -166,7 +166,6 @@ fn fold_expr_assoc(op: AssocOp, terms: Vec<Expr>, ctx: &mut Context) -> Expr {
                     folded_terms.push(sub_term);
                 }
 
-                // Flattened a sub-expression.
                 ctx.mark_change();
             }
             _ => folded_terms.push(term),
@@ -174,9 +173,22 @@ fn fold_expr_assoc(op: AssocOp, terms: Vec<Expr>, ctx: &mut Context) -> Expr {
     }
 
     if is_const_value {
-        // Found constant value.
         ctx.mark_change();
         return const_sequence(folded_terms, const_value);
+    }
+
+    if op == AssocOp::Product {
+        match const_term {
+            Value(-1) => {
+                ctx.mark_change();
+                return Expr::Unary(UnOp::Negate, Box::new(Expr::Assoc(op, folded_terms)));
+            }
+            Value(0) => {
+                ctx.mark_change();
+                return const_sequence(folded_terms, Value(0));
+            }
+            _ => (),
+        }
     }
 
     if const_term_count > 1 || const_term_count == 1 && !is_const_term_last {
@@ -193,12 +205,10 @@ fn fold_expr_assoc(op: AssocOp, terms: Vec<Expr>, ctx: &mut Context) -> Expr {
 
     match folded_terms.len() {
         0 => {
-            // Reduced to identity.
             ctx.mark_change();
             Expr::Const(op.identity())
         }
         1 => {
-            // Reduced to single term.
             ctx.mark_change();
             folded_terms.pop().expect("there should be one term")
         }
