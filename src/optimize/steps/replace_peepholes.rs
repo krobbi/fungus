@@ -53,7 +53,7 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         [Push(expr), Binary(BinOp::Divide) | Assoc(AssocOp::Product)]
             if expr.eval_const() == Some(Value(0)) =>
         {
-            vec![Push(expr.clone()), Pop, Push(Expr::Const(Value(0)))]
+            vec![Pop, Push(expr.clone())]
         }
 
         // * Adding 0 to a value does nothing.
@@ -70,7 +70,7 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
 
         // * A value modulo -1, 0, or 1 is always zero.
         [Push(expr), Binary(BinOp::Modulo)] if let Some(Value(-1..=1)) = expr.eval_const() => {
-            vec![Push(expr.clone()), Pop, Push(Expr::Const(Value(0)))]
+            vec![Pop, Push(expr.clone()), Pop, Push(Expr::Const(Value(0)))]
         }
 
         // * Expressions can be swapped if at least one expression has no side
@@ -99,6 +99,10 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
             vec![prefix.clone()],
             Box::new(expr.clone()),
         ))],
+
+        // * Replacing push pop pop with pop push pop unblocks some peephole
+        //   optimizations.
+        [Push(expr), Pop, Pop] => vec![Pop, Push(expr.clone()), Pop],
 
         // * A duplicated constant can be replaced with itself.
         [Push(expr), Duplicate] if let Some(value) = expr.eval_const() => {
