@@ -34,62 +34,61 @@ pub fn run_step(cfg: &mut Cfg, ctx: &mut Context) {
 fn fold_expr(expr: Expr, ctx: &mut Context) -> Expr {
     match expr {
         Expr::Const(_) | Expr::InputInt | Expr::InputChar => expr,
-        Expr::Unary(UnOp::Negate, rhs) => fold_expr_negate(*rhs, ctx),
-        Expr::Unary(UnOp::Bool, rhs) => fold_expr_bool(*rhs, ctx),
-        Expr::Unary(UnOp::Not, rhs) => fold_expr_not(*rhs, ctx),
+        Expr::Unary(op, rhs) => fold_expr_unary(op, *rhs, ctx),
         Expr::Binary(op, lhs, rhs) => fold_expr_binary(op, *lhs, *rhs, ctx),
         Expr::Assoc(op, terms) => fold_expr_assoc(op, terms, ctx),
         Expr::Sequence(prefix, expr) => fold_expr_sequence(prefix, *expr, ctx),
     }
 }
 
-/// Folds a unary arithmetic negation [`Expr`].
-fn fold_expr_negate(rhs: Expr, ctx: &mut Context) -> Expr {
+/// Folds a unary [`Expr`].
+fn fold_expr_unary(op: UnOp, rhs: Expr, ctx: &mut Context) -> Expr {
     let rhs = fold_expr(rhs, ctx);
 
-    let folded_expr = match rhs {
-        Expr::Const(value) => Expr::Const(-value),
-        Expr::Unary(UnOp::Negate, rhs) => *rhs,
-        _ => return Expr::Unary(UnOp::Negate, Box::new(rhs)),
-    };
+    if let Some(rhs_value) = rhs.eval_const() {
+        ctx.mark_change();
+        return const_sequence(vec![rhs], op.eval(rhs_value));
+    }
 
-    ctx.mark_change();
-    folded_expr
-}
+    let folded_expr = match (op, rhs) {
+        // A double negation does nothing.
+        (UnOp::Negate, Expr::Unary(UnOp::Negate, rhs)) => *rhs,
 
-/// Folds a unary Boolean cast [`Expr`].
-fn fold_expr_bool(rhs: Expr, ctx: &mut Context) -> Expr {
-    let rhs = fold_expr(rhs, ctx);
+        // Operations which preserve non-zeroness are unnecessary before logical
+        // operations.
+        (UnOp::Bool | UnOp::Not, Expr::Unary(UnOp::Negate | UnOp::Bool, rhs)) => {
+            Expr::Unary(op, rhs)
+        }
 
-    let folded_expr = match rhs {
-        Expr::Const(value) => Expr::Const(value.is_non_zero().into()),
-        Expr::Unary(UnOp::Negate | UnOp::Bool, rhs) => Expr::Unary(UnOp::Bool, rhs),
-        Expr::Unary(UnOp::Not, _)
-        | Expr::Binary(
-            BinOp::Greater | BinOp::GreaterEqual | BinOp::Less | BinOp::LessEqual,
-            _,
-            _,
+        // A Boolean cast on a Boolean value does nothing.
+        (
+            UnOp::Bool,
+            rhs @ (Expr::Unary(UnOp::Not, _)
+            | Expr::Binary(
+                BinOp::Greater | BinOp::GreaterEqual | BinOp::Less | BinOp::LessEqual,
+                _,
+                _,
+            )),
         ) => rhs,
-        _ => return Expr::Unary(UnOp::Bool, Box::new(rhs)),
-    };
 
-    ctx.mark_change();
-    folded_expr
-}
+        // A double not is a Boolean cast.
+        (UnOp::Not, Expr::Unary(UnOp::Not, rhs)) => Expr::Unary(UnOp::Bool, rhs),
 
-/// Folds a unary logical negation [`Expr`].
-fn fold_expr_not(rhs: Expr, ctx: &mut Context) -> Expr {
-    let rhs = fold_expr(rhs, ctx);
+        // A not comparison can be simplified to another comparison.
+        (UnOp::Not, Expr::Binary(BinOp::Greater, lhs, rhs)) => {
+            Expr::Binary(BinOp::LessEqual, lhs, rhs)
+        }
+        (UnOp::Not, Expr::Binary(BinOp::GreaterEqual, lhs, rhs)) => {
+            Expr::Binary(BinOp::Less, lhs, rhs)
+        }
+        (UnOp::Not, Expr::Binary(BinOp::Less, lhs, rhs)) => {
+            Expr::Binary(BinOp::GreaterEqual, lhs, rhs)
+        }
+        (UnOp::Not, Expr::Binary(BinOp::LessEqual, lhs, rhs)) => {
+            Expr::Binary(BinOp::Greater, lhs, rhs)
+        }
 
-    let folded_expr = match rhs {
-        Expr::Const(value) => Expr::Const(!value),
-        Expr::Unary(UnOp::Negate | UnOp::Bool, rhs) => Expr::Unary(UnOp::Not, rhs),
-        Expr::Unary(UnOp::Not, rhs) => Expr::Unary(UnOp::Bool, rhs),
-        Expr::Binary(BinOp::Greater, lhs, rhs) => Expr::Binary(BinOp::LessEqual, lhs, rhs),
-        Expr::Binary(BinOp::GreaterEqual, lhs, rhs) => Expr::Binary(BinOp::Less, lhs, rhs),
-        Expr::Binary(BinOp::Less, lhs, rhs) => Expr::Binary(BinOp::GreaterEqual, lhs, rhs),
-        Expr::Binary(BinOp::LessEqual, lhs, rhs) => Expr::Binary(BinOp::Greater, lhs, rhs),
-        _ => return Expr::Unary(UnOp::Not, Box::new(rhs)),
+        (_, rhs) => return Expr::Unary(op, Box::new(rhs)),
     };
 
     ctx.mark_change();
@@ -103,9 +102,7 @@ fn fold_expr_binary(op: BinOp, lhs: Expr, rhs: Expr, ctx: &mut Context) -> Expr 
 
     let folded_expr = match (op, lhs, rhs) {
         (BinOp::Divide, Expr::Const(lhs), Expr::Const(rhs)) => Expr::Const(lhs / rhs),
-        (BinOp::Divide, Expr::Const(Value(0)), rhs) => {
-            Expr::Sequence(vec![rhs], Box::new(Expr::Const(Value(0))))
-        }
+        (BinOp::Divide, Expr::Const(Value(0)), rhs) => const_sequence(vec![rhs], Value(0)),
         (BinOp::Divide, lhs, Expr::Const(Value(-1))) => Expr::Unary(UnOp::Negate, Box::new(lhs)),
         (BinOp::Divide, lhs, Expr::Const(Value(1))) => lhs,
         (BinOp::Modulo, Expr::Const(lhs), Expr::Const(rhs)) => Expr::Const(lhs % rhs),
@@ -237,6 +234,11 @@ fn fold_expr_sequence(prefix: Vec<Expr>, expr: Expr, ctx: &mut Context) -> Expr 
     } else {
         Expr::Sequence(folded_prefix, Box::new(expr))
     }
+}
+
+/// Returns a new sequence [`Expr`] from a prefix and a constant [`Value`].
+fn const_sequence(prefix: Vec<Expr>, value: Value) -> Expr {
+    Expr::Sequence(prefix, Box::new(Expr::Const(value)))
 }
 
 /// Returns an [`AssocOp`]'s identity [`Value`].
