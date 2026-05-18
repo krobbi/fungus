@@ -121,21 +121,30 @@ fn fold_expr_binary(op: BinOp, lhs: Expr, rhs: Expr, ctx: &mut Context) -> Expr 
 
 /// Folds an associative [`Expr`].
 fn fold_expr_assoc(op: AssocOp, terms: Vec<Expr>, ctx: &mut Context) -> Expr {
-    let identity = assoc_identity(op);
-    let mut accum = identity;
+    let mut const_value = op.identity();
+    let mut is_const_value = true;
+
+    let mut const_term = op.identity();
     let mut folded_terms = Vec::new();
-    let mut const_count = 0_u32;
-    let mut is_const_last = false;
+    let mut const_term_count = 0_u32;
+    let mut is_const_term_last = false;
 
     for term in terms {
         let term = fold_expr(term, ctx);
-        is_const_last = false;
+
+        if is_const_value && let Some(value) = term.eval_const() {
+            const_value = op.eval(const_value, value);
+        } else {
+            is_const_value = false;
+        }
+
+        is_const_term_last = false;
 
         match term {
             Expr::Const(value) => {
-                accum = eval_assoc(op, accum, value);
-                const_count += 1;
-                is_const_last = true;
+                const_term = op.eval(const_term, value);
+                const_term_count += 1;
+                is_const_term_last = true;
             }
             Expr::Assoc(sub_op, sub_terms) if sub_op == op => {
                 for sub_term in sub_terms {
@@ -149,14 +158,20 @@ fn fold_expr_assoc(op: AssocOp, terms: Vec<Expr>, ctx: &mut Context) -> Expr {
         }
     }
 
-    if const_count > 1 || const_count == 1 && !is_const_last {
+    if is_const_value {
+        // Found constant value.
+        ctx.mark_change();
+        return const_sequence(folded_terms, const_value);
+    }
+
+    if const_term_count > 1 || const_term_count == 1 && !is_const_term_last {
         // Collected and commuted constant terms.
         ctx.mark_change();
     }
 
-    if accum != identity {
-        folded_terms.push(Expr::Const(accum));
-    } else if const_count > 0 {
+    if const_term != op.identity() {
+        folded_terms.push(Expr::Const(const_term));
+    } else if const_term_count > 0 {
         // Removed constant terms.
         ctx.mark_change();
     }
@@ -165,7 +180,7 @@ fn fold_expr_assoc(op: AssocOp, terms: Vec<Expr>, ctx: &mut Context) -> Expr {
         0 => {
             // Reduced to identity.
             ctx.mark_change();
-            Expr::Const(identity)
+            Expr::Const(op.identity())
         }
         1 => {
             // Reduced to single term.
@@ -239,20 +254,4 @@ fn fold_expr_sequence(prefix: Vec<Expr>, expr: Expr, ctx: &mut Context) -> Expr 
 /// Returns a new sequence [`Expr`] from a prefix and a constant [`Value`].
 fn const_sequence(prefix: Vec<Expr>, value: Value) -> Expr {
     Expr::Sequence(prefix, Box::new(Expr::Const(value)))
-}
-
-/// Returns an [`AssocOp`]'s identity [`Value`].
-const fn assoc_identity(op: AssocOp) -> Value {
-    match op {
-        AssocOp::Sum => Value(0),
-        AssocOp::Product => Value(1),
-    }
-}
-
-/// Evaluates an [`AssocOp`] with two term [`Value`]s.
-fn eval_assoc(op: AssocOp, lhs: Value, rhs: Value) -> Value {
-    match op {
-        AssocOp::Sum => lhs + rhs,
-        AssocOp::Product => lhs * rhs,
-    }
 }
