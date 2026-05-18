@@ -99,19 +99,34 @@ fn fold_expr_unary(op: UnOp, rhs: Expr, ctx: &mut Context) -> Expr {
 fn fold_expr_binary(op: BinOp, lhs: Expr, rhs: Expr, ctx: &mut Context) -> Expr {
     let lhs = fold_expr(lhs, ctx);
     let rhs = fold_expr(rhs, ctx);
+    let lhs_value = lhs.eval_const();
+    let rhs_value = rhs.eval_const();
+
+    if let (Some(lhs_value), Some(rhs_value)) = (lhs_value, rhs_value)
+        && let Some(value) = op.eval_const(lhs_value, rhs_value)
+    {
+        ctx.mark_change();
+        return const_sequence(vec![lhs, rhs], value);
+    }
+
+    // Some cases of division and remainder always result in zero.
+    if matches!(
+        (op, lhs_value, rhs_value),
+        (BinOp::Divide, _, Some(Value(0)))
+            | (BinOp::Divide | BinOp::Modulo, Some(Value(0)), _)
+            | (BinOp::Modulo, _, Some(Value(-1..=1)))
+    ) {
+        ctx.mark_change();
+        return const_sequence(vec![lhs, rhs], Value(0));
+    }
 
     let folded_expr = match (op, lhs, rhs) {
-        (BinOp::Divide, Expr::Const(lhs), Expr::Const(rhs)) => Expr::Const(lhs / rhs),
-        (BinOp::Divide, Expr::Const(Value(0)), rhs) => const_sequence(vec![rhs], Value(0)),
+        // A division by -1 is a negation.
         (BinOp::Divide, lhs, Expr::Const(Value(-1))) => Expr::Unary(UnOp::Negate, Box::new(lhs)),
+
+        // A division by 1 does nothing.
         (BinOp::Divide, lhs, Expr::Const(Value(1))) => lhs,
-        (BinOp::Modulo, Expr::Const(lhs), Expr::Const(rhs)) => Expr::Const(lhs % rhs),
-        (BinOp::Greater, Expr::Const(lhs), Expr::Const(rhs)) => Expr::Const((lhs > rhs).into()),
-        (BinOp::GreaterEqual, Expr::Const(lhs), Expr::Const(rhs)) => {
-            Expr::Const((lhs >= rhs).into())
-        }
-        (BinOp::Less, Expr::Const(lhs), Expr::Const(rhs)) => Expr::Const((lhs < rhs).into()),
-        (BinOp::LessEqual, Expr::Const(lhs), Expr::Const(rhs)) => Expr::Const((lhs <= rhs).into()),
+
         (_, lhs, rhs) => return Expr::Binary(op, Box::new(lhs), Box::new(rhs)),
     };
 
