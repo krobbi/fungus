@@ -111,6 +111,7 @@ impl Display for Terminator {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Halt => write!(f, "halt"),
+            Self::InfiniteLoop => write!(f, "infinite_loop"),
             Self::Jump(label) => write!(f, "{:16}{label}", "jump"),
             Self::Branch(then_label, else_label) => {
                 write!(f, "{:16}{then_label} else {else_label}", "branch")

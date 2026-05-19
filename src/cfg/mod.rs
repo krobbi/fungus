@@ -142,6 +142,9 @@ pub enum Terminator {
     /// Halt execution.
     Halt,
 
+    /// An infinite loop with no side effects.
+    InfiniteLoop,
+
     /// Unconditionally jump to a [`Label`].
     Jump(Label),
 
@@ -160,7 +163,7 @@ impl Terminator {
     /// Returns a boxed slice of [`Label`]s targeted by the terminator.
     pub fn labels(&self) -> Box<[Label]> {
         match self {
-            Self::Halt => Box::new([]),
+            Self::Halt | Self::InfiniteLoop => Box::new([]),
             Self::Jump(label) | Self::Put(label) => Box::new([*label]),
             Self::Branch(then_label, else_label) => Box::new([*then_label, *else_label]),
             Self::Random(right_label, down_label, left_label, up_label) => {
