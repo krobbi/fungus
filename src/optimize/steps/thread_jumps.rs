@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::{
     cfg::{Cfg, Label, Terminator},
     optimize::context::Context,
@@ -5,20 +7,40 @@ use crate::{
 
 /// Replaces [`Label`]s leading to chains of jumps with their target [`Label`]s.
 pub fn run_step(cfg: &mut Cfg, ctx: &mut Context) {
-    while let Some(chain) = find_chain(cfg) {
+    let mut threaded_labels = HashSet::new();
+    threaded_labels.insert(Label::Main);
+
+    for basic_block in cfg.basic_blocks_unstable() {
+        if let Terminator::Put(label) = basic_block.terminator {
+            threaded_labels.insert(label);
+        }
+    }
+
+    while let Some(chain) = find_chain(cfg, &threaded_labels) {
         match chain {
             Chain::TightLoop(label) => {
                 cfg.basic_block_mut(label).terminator = Terminator::InfiniteLoop;
-                ctx.mark_change();
             }
             Chain::LooseLoop(source_labels, target_label) => {
                 let positions = collect_positions(cfg, &source_labels);
                 let target_basic_block = cfg.basic_block_mut(target_label);
                 target_basic_block.positions.extend(positions);
                 target_basic_block.terminator = Terminator::InfiniteLoop;
-                ctx.mark_change();
+            }
+            Chain::Thread(source_labels, target_label) => {
+                let positions = collect_positions(cfg, &source_labels);
+                let target_basic_block = cfg.basic_block_mut(target_label);
+                target_basic_block.positions.extend(positions);
+
+                for basic_block in cfg.basic_blocks_mut_unstable() {
+                    redirect_terminator(&mut basic_block.terminator, &source_labels, target_label);
+                }
+
+                threaded_labels.extend(source_labels);
             }
         }
+
+        ctx.mark_change();
     }
 }
 
@@ -29,12 +51,20 @@ enum Chain {
 
     /// An infinite loop between multiple [`Label`]s.
     LooseLoop(Vec<Label>, Label),
+
+    /// A linear thread of [`Label`]s.
+    Thread(Vec<Label>, Label),
 }
 
-/// Finds and returns the first [`Chain`] in a [`Cfg`]. This function returns
-/// [`None`] if the [`Cfg`] has no [`Chain`]s.
-fn find_chain(cfg: &Cfg) -> Option<Chain> {
+/// Finds and returns the first [`Chain`] in a [`Cfg`] with a set of already
+/// threaded [`Label`]s. This function returns [`None`] if the [`Cfg`] has no
+/// [`Chain`]s.
+fn find_chain(cfg: &Cfg, threaded_labels: &HashSet<Label>) -> Option<Chain> {
     for source_label in cfg.labels() {
+        if threaded_labels.contains(&source_label) {
+            continue;
+        }
+
         let Some(mut target_label) = follow_label(cfg, source_label) else {
             continue;
         };
@@ -53,6 +83,8 @@ fn find_chain(cfg: &Cfg) -> Option<Chain> {
             source_labels.push(target_label);
             target_label = next_target_label;
         }
+
+        return Some(Chain::Thread(source_labels, target_label));
     }
 
     None
@@ -82,4 +114,31 @@ fn collect_positions(cfg: &Cfg, labels: &[Label]) -> Vec<(u16, u16)> {
     }
 
     positions
+}
+
+/// Redirects a [`Terminator`] from a slice of source [`Label`]s to a target
+/// [`Label`].
+fn redirect_terminator(terminator: &mut Terminator, source_labels: &[Label], target_label: Label) {
+    match terminator {
+        Terminator::Halt | Terminator::InfiniteLoop | Terminator::Put(_) => (),
+        Terminator::Jump(label) => redirect_label(label, source_labels, target_label),
+        Terminator::Branch(then_label, else_label) => {
+            redirect_label(then_label, source_labels, target_label);
+            redirect_label(else_label, source_labels, target_label);
+        }
+        Terminator::Random(right_label, down_label, left_label, up_label) => {
+            redirect_label(right_label, source_labels, target_label);
+            redirect_label(down_label, source_labels, target_label);
+            redirect_label(left_label, source_labels, target_label);
+            redirect_label(up_label, source_labels, target_label);
+        }
+    }
+}
+
+/// Redirects a [`Label`] from a slice of source [`Label`]s to a target
+/// [`Label`].
+fn redirect_label(label: &mut Label, source_labels: &[Label], target_label: Label) {
+    if source_labels.contains(label) {
+        *label = target_label;
+    }
 }

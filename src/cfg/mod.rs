@@ -49,6 +49,12 @@ impl Cfg {
             .expect("label should exist")
     }
 
+    /// Returns an [`Iterator`] over references to the `Cfg`'s [`BasicBlock`]s
+    /// in an arbitrary order.
+    pub fn basic_blocks_unstable(&self) -> impl Iterator<Item = &BasicBlock> {
+        self.basic_blocks.values()
+    }
+
     /// Returns an [`Iterator`] over mutable references to the `Cfg`'s
     /// [`BasicBlock`]s in an arbitrary order.
     pub fn basic_blocks_mut_unstable(&mut self) -> impl Iterator<Item = &mut BasicBlock> {
