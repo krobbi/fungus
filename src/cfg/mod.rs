@@ -130,6 +130,10 @@ pub enum Instruction {
 
     /// Print a [`String`].
     Print(String),
+
+    /// Pop and print the stack, up to but not including the topmost null
+    /// [`Value`].
+    PrintStack,
 }
 
 /// A [`BasicBlock`]'s terminator.

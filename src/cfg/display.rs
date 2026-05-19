@@ -102,6 +102,7 @@ impl Display for Instruction {
             Self::OutputInt => write!(f, "output_int"),
             Self::OutputChar => write!(f, "output_char"),
             Self::Print(string) => write!(f, "{:16}{string:?}", "print"),
+            Self::PrintStack => write!(f, "print_stack"),
         }
     }
 }
