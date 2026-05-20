@@ -1,6 +1,6 @@
 use crate::{
     cfg::{Cfg, Expr, Instruction, Terminator, UnOp},
-    optimize::context::Context,
+    optimize::{const_stack::ConstStack, context::Context},
 };
 
 /// Optimizes [`BasicBlock`][crate::cfg::BasicBlock]s with branch
@@ -18,18 +18,23 @@ pub fn run_step(cfg: &mut Cfg, ctx: &mut Context) {
             continue;
         }
 
-        match basic_block.instructions.last() {
-            Some(Instruction::Push(expr)) if let Some(value) = expr.eval_const() => {
-                let label = if value.is_non_zero() {
-                    then_label
-                } else {
-                    else_label
-                };
+        let mut const_stack = ConstStack::new();
+        const_stack.eval_instructions(&basic_block.instructions);
 
-                basic_block.instructions.push(Instruction::Pop);
-                basic_block.terminator = Terminator::Jump(label);
-                ctx.mark_change();
-            }
+        if let Some(value) = const_stack.peek() {
+            let label = if value.is_non_zero() {
+                then_label
+            } else {
+                else_label
+            };
+
+            basic_block.instructions.push(Instruction::Pop);
+            basic_block.terminator = Terminator::Jump(label);
+            ctx.mark_change();
+            continue;
+        }
+
+        match basic_block.instructions.last() {
             Some(Instruction::Push(expr))
                 if let Some((expr, is_negated)) = fold_condition(expr) =>
             {
