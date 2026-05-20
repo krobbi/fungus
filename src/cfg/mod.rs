@@ -86,7 +86,7 @@ pub enum Label {
 }
 
 /// A basic block.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BasicBlock {
     /// The [`Playfield`][crate::playfield::Playfield] positions.
     pub positions: HashSet<(u16, u16)>,

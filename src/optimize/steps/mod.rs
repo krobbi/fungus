@@ -2,6 +2,7 @@ mod fold_exprs;
 mod merge_basic_blocks;
 mod optimize_branches;
 mod remove_unreachable_basic_blocks;
+mod replace_jumps;
 mod replace_peepholes;
 mod thread_jumps;
 mod unroll_print_loops;
@@ -16,6 +17,7 @@ pub fn run_all_steps(cfg: &mut Cfg, ctx: &mut Context) {
     thread_jumps::run_step(cfg, ctx);
     optimize_branches::run_step(cfg, ctx);
     unroll_print_loops::run_step(cfg, ctx);
+    replace_jumps::run_step(cfg, ctx);
     remove_unreachable_basic_blocks::run_step(cfg, ctx);
     replace_peepholes::run_step(cfg, ctx);
     fold_exprs::run_step(cfg, ctx);
