@@ -27,10 +27,6 @@ pub enum FungusError {
     /// [`Playfield`][crate::playfield::Playfield].
     #[error("source code is larger than 65,535x65,535 characters")]
     SourceTooLarge,
-
-    /// The currently required `--dump` flag is not set.
-    #[error("use '--dump' to print pseudo-assembly")]
-    MissingDumpFlag,
 }
 
 impl FungusError {
@@ -39,7 +35,6 @@ impl FungusError {
     pub fn print(&self) {
         let _: io::Result<()> = match self {
             Self::Cli(error) => error.print(),
-            Self::MissingDumpFlag => writeln!(io::stderr(), "info: {self}"),
             _ => writeln!(io::stderr(), "error: {self}"),
         };
     }

@@ -1,6 +1,7 @@
 mod cfg;
 mod config;
 mod errors;
+mod interpret;
 mod optimize;
 mod parse;
 mod playfield;
@@ -35,7 +36,8 @@ fn run() -> Result<(), FungusError> {
         return Ok(());
     }
 
-    Err(FungusError::MissingDumpFlag)
+    interpret::interpret_cfg(&cfg);
+    Ok(())
 }
 
 /// Reads source code from a [`Path`]. This function returns a [`FungusError`]

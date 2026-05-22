@@ -144,7 +144,7 @@ pub enum Terminator {
     /// Halt execution.
     Halt,
 
-    /// An infinite loop with no side effects.
+    /// Infinite loop with no side effects.
     InfiniteLoop,
 
     /// Unconditionally jump to a [`Label`].
