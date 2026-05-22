@@ -7,12 +7,14 @@ use std::{
 
 use crate::{
     cfg::{BasicBlock, BinOp, Cfg, Expr, Instruction, Label, Terminator},
+    parse,
     playfield::Playfield,
+    state::State,
     value::Value,
 };
 
 /// Interprets a [`Cfg`] with a [`Playfield`].
-pub fn interpret_cfg(cfg: &Cfg, playfield: &Playfield) {
+pub fn interpret_cfg(cfg: &Cfg, playfield: &mut Playfield) {
     let mut interpreter = Interpreter::new(playfield);
     interpreter.interpret_cfg(cfg);
 }
@@ -20,7 +22,7 @@ pub fn interpret_cfg(cfg: &Cfg, playfield: &Playfield) {
 /// A structure which interprets a [`Cfg`].
 struct Interpreter<'ply> {
     /// The [`Playfield`].
-    playfield: &'ply Playfield,
+    playfield: &'ply mut Playfield,
 
     /// The stack of [`Value`]s.
     stack: Vec<Value>,
@@ -31,7 +33,7 @@ struct Interpreter<'ply> {
 
 impl<'ply> Interpreter<'ply> {
     /// Creates a new `Interpreter` from a [`Playfield`].
-    const fn new(playfield: &'ply Playfield) -> Self {
+    const fn new(playfield: &'ply mut Playfield) -> Self {
         Self {
             playfield,
             stack: Vec::new(),
@@ -41,7 +43,9 @@ impl<'ply> Interpreter<'ply> {
 
     /// Interprets a [`Cfg`].
     fn interpret_cfg(&mut self, cfg: &Cfg) {
+        let mut cfg = cfg;
         let mut label = Label::Main;
+        let mut recompiled_cfg;
 
         loop {
             let basic_block = cfg.basic_block(label);
@@ -50,6 +54,11 @@ impl<'ply> Interpreter<'ply> {
                 Flow::Halt => break,
                 Flow::InfiniteLoop => infinite_loop(),
                 Flow::Jump(next_label) => label = next_label,
+                Flow::Recompile(state) => {
+                    recompiled_cfg = parse::parse_playfield_at(self.playfield, state);
+                    cfg = &recompiled_cfg;
+                    label = Label::Main;
+                }
             }
         }
 
@@ -142,7 +151,24 @@ impl<'ply> Interpreter<'ply> {
 
                 Flow::Jump(label)
             }
-            Terminator::Put(_) => todo!("interpreting put terminator"),
+            Terminator::Put(label) => {
+                let y = self.pop();
+                let x = self.pop();
+                let value = self.pop();
+
+                if let (Ok(x), Ok(y)) = (x.0.try_into(), y.0.try_into())
+                    && let Some(old_value) = self.playfield.put_value(x, y, value)
+                    && value != old_value
+                {
+                    let Label::State(state) = *label else {
+                        unreachable!("put terminator should be a state");
+                    };
+
+                    Flow::Recompile(state)
+                } else {
+                    Flow::Jump(*label)
+                }
+            }
         }
     }
 
@@ -226,6 +252,9 @@ enum Flow {
 
     /// Unconditionally jump to a [`Label`].
     Jump(Label),
+
+    /// Recompile at a [`State`].
+    Recompile(State),
 }
 
 /// Reads and returns a line of user input.

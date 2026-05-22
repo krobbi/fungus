@@ -27,7 +27,7 @@ fn main() -> ExitCode {
 fn run() -> Result<(), FungusError> {
     let config = Config::from_cli()?;
     let source = read_source(config.source_file_path())?;
-    let playfield = Playfield::new(&source)?;
+    let mut playfield = Playfield::new(&source)?;
     let mut cfg = parse::parse_playfield(&playfield);
     optimize::optimize_cfg(&mut cfg);
 
@@ -36,7 +36,7 @@ fn run() -> Result<(), FungusError> {
         return Ok(());
     }
 
-    interpret::interpret_cfg(&cfg, &playfield);
+    interpret::interpret_cfg(&cfg, &mut playfield);
     Ok(())
 }
 

@@ -16,32 +16,8 @@ pub fn parse_playfield(playfield: &Playfield) -> Cfg {
     parse_playfield_at(playfield, State::default())
 }
 
-/// A parsed command.
-enum Item {
-    /// A subtraction.
-    Subtract,
-
-    /// An [`Instruction`].
-    Instruction(Instruction),
-
-    /// A [`Terminator`].
-    Terminator(Terminator),
-}
-
-impl From<Instruction> for Item {
-    fn from(value: Instruction) -> Self {
-        Self::Instruction(value)
-    }
-}
-
-impl From<Terminator> for Item {
-    fn from(value: Terminator) -> Self {
-        Self::Terminator(value)
-    }
-}
-
 /// Parses a [`Cfg`] from a [`Playfield`] at a main [`State`].
-fn parse_playfield_at(playfield: &Playfield, main_state: State) -> Cfg {
+pub fn parse_playfield_at(playfield: &Playfield, main_state: State) -> Cfg {
     let mut cfg = Cfg::new();
     cfg.insert_basic_block(
         Label::Main,
@@ -75,6 +51,30 @@ fn parse_playfield_at(playfield: &Playfield, main_state: State) -> Cfg {
     }
 
     cfg
+}
+
+/// A parsed command.
+enum Item {
+    /// A subtraction.
+    Subtract,
+
+    /// An [`Instruction`].
+    Instruction(Instruction),
+
+    /// A [`Terminator`].
+    Terminator(Terminator),
+}
+
+impl From<Instruction> for Item {
+    fn from(value: Instruction) -> Self {
+        Self::Instruction(value)
+    }
+}
+
+impl From<Terminator> for Item {
+    fn from(value: Terminator) -> Self {
+        Self::Terminator(value)
+    }
 }
 
 /// Parses a [`BasicBlock`] from a [`Playfield`] and a [`State`].

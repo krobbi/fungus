@@ -1,3 +1,5 @@
+use std::mem;
+
 use crate::{errors::FungusError, value::Value};
 
 /// A Befunge playfield.
@@ -40,6 +42,11 @@ impl Playfield {
         })
     }
 
+    /// Returns the `Playfield`'s bounds in cells.
+    pub const fn bounds(&self) -> (u16, u16) {
+        (self.width, self.height)
+    }
+
     /// Returns a [`Value`] from the `Playfield` at a position in cells. This
     /// function returns [`None`] if the position is out of bounds.
     pub fn value(&self, x: u16, y: u16) -> Option<Value> {
@@ -51,8 +58,16 @@ impl Playfield {
         self.values.get(index).copied()
     }
 
-    /// Returns the `Playfield`'s bounds in cells.
-    pub const fn bounds(&self) -> (u16, u16) {
-        (self.width, self.height)
+    /// Puts a [`Value`] to the `Playfield` at a position in cells and returns
+    /// the old [`Value`]. This function returns [`None`] if the position is out
+    /// of bounds.
+    pub fn put_value(&mut self, x: u16, y: u16, value: Value) -> Option<Value> {
+        if x >= self.width {
+            return None;
+        }
+
+        let index = usize::from(y) * usize::from(self.width) + usize::from(x);
+        let cell = self.values.get_mut(index)?;
+        Some(mem::replace(cell, value))
     }
 }
