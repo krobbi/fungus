@@ -7,8 +7,8 @@ use crate::{
 /// Replaces peepholes of [`Instruction`]s with more optimal equivalents.
 pub fn run_step(cfg: &mut Cfg, ctx: &mut Context) {
     for basic_block in cfg.basic_blocks_mut_unstable() {
-        optimize_window(&mut basic_block.instructions, 2, ctx);
         optimize_window(&mut basic_block.instructions, 3, ctx);
+        optimize_window(&mut basic_block.instructions, 2, ctx);
     }
 }
 
