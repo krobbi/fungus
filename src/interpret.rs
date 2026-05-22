@@ -138,7 +138,7 @@ impl Interpreter {
     fn eval_expr(&mut self, expr: &Expr) -> Value {
         match expr {
             Expr::Const(value) => *value,
-            Expr::InputInt => todo!("evaluating integer input"),
+            Expr::InputInt => read_line().trim().parse().map_or(Value(-1), Value),
             Expr::InputChar => todo!("evaluating character input"),
             Expr::Unary(op, rhs) => {
                 let rhs = self.eval_expr(rhs);
@@ -205,11 +205,19 @@ enum Flow {
     Jump(Label),
 }
 
-/// Flushes the standard output stream.
-fn flush_stdout() {
-    io::stdout()
-        .flush()
-        .expect("flushing stdout should not fail");
+/// Reads and returns a line of user input.
+fn read_line() -> String {
+    flush_stdout();
+    let mut line = String::new();
+
+    // NOTE: This will panic if user input is not UTF-8. Ideally, a panic should
+    // never occur because of user error. Consider using a buffer of bytes to
+    // emulate the C standard library input of the original Befunge interpreter.
+    io::stdin()
+        .read_line(&mut line)
+        .expect("reading from stdin should not fail");
+
+    line
 }
 
 /// Enters a cold infinite loop.
@@ -222,4 +230,11 @@ fn infinite_loop() -> ! {
     loop {
         thread::sleep(SLEEP_DURATION);
     }
+}
+
+/// Flushes the standard output stream.
+fn flush_stdout() {
+    io::stdout()
+        .flush()
+        .expect("flushing stdout should not fail");
 }
