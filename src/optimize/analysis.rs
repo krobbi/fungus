@@ -14,7 +14,7 @@ impl Instruction {
             | Self::Unary(_)
             | Self::Binary(_)
             | Self::Assoc(_) => true,
-            Self::OutputInt | Self::OutputChar | Self::Print(_) | Self::PrintStack => false,
+            Self::OutputInt | Self::OutputChar | Self::Print(_) => false,
         }
     }
 }

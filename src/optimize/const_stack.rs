@@ -74,22 +74,6 @@ impl ConstStack {
                 self.push(value);
             }
             Instruction::Print(_) => (),
-            Instruction::PrintStack => {
-                while let Some(value) = self.pop() {
-                    if value == Value(0) {
-                        // The printed stack was constant and terminated. Push
-                        // the terminator back to the stack.
-                        self.push(Some(Value(0)));
-                        return;
-                    }
-                }
-
-                // A non-constant value was printed. The state of the stack is
-                // unknown, but there must be an implicit or explicit terminator
-                // on top of the stack.
-                self.values.clear();
-                self.push(Some(Value(0)));
-            }
         }
     }
 

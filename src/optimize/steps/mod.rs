@@ -5,7 +5,6 @@ mod remove_unreachable_basic_blocks;
 mod replace_jumps;
 mod replace_peepholes;
 mod thread_jumps;
-mod unroll_print_loops;
 
 use crate::cfg::Cfg;
 
@@ -16,7 +15,6 @@ pub fn run_all_steps(cfg: &mut Cfg, ctx: &mut Context) {
     merge_basic_blocks::run_step(cfg, ctx);
     thread_jumps::run_step(cfg, ctx);
     optimize_branches::run_step(cfg, ctx);
-    unroll_print_loops::run_step(cfg, ctx);
     replace_jumps::run_step(cfg, ctx);
     remove_unreachable_basic_blocks::run_step(cfg, ctx);
     replace_peepholes::run_step(cfg, ctx);

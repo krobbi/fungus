@@ -38,7 +38,7 @@ fn optimize_window(instructions: &mut Vec<Instruction>, window_size: usize, ctx:
 #[expect(clippy::too_many_lines, reason = "function is a single pattern match")]
 fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
     use Instruction::{
-        Assoc, Binary, Duplicate, OutputChar, OutputInt, Pop, Print, PrintStack, Push, Swap, Unary,
+        Assoc, Binary, Duplicate, OutputChar, OutputInt, Pop, Print, Push, Swap, Unary,
     };
 
     let peephole = match peephole {
@@ -121,18 +121,6 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
             Pop,
             Print(value.to_char_lossy().to_string()),
         ],
-        [Push(expr), PrintStack] if let Some(value) = expr.eval_const() => {
-            if value.is_non_zero() {
-                vec![
-                    Push(expr.clone()),
-                    Pop,
-                    Print(value.to_char_lossy().to_string()),
-                    PrintStack,
-                ]
-            } else {
-                vec![Push(expr.clone())]
-            }
-        }
 
         // * Popping a duplicated value does nothing.
         // * Swapping twice does nothing.
