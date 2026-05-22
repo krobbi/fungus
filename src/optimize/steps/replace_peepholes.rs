@@ -205,12 +205,26 @@ fn optimize_peephole(peephole: &[Instruction]) -> Option<Vec<Instruction>> {
         [Print(prefix), Print(suffix)] => vec![Print(format!("{prefix}{suffix}"))],
 
         // * Bubble print statements.
-        [quiet, print @ Print(_)] if !matches!(quiet, Pop) && quiet.is_quiet() => {
-            vec![print.clone(), quiet.clone()]
+        [instruction, print @ Print(_)] if is_post_print(instruction) => {
+            vec![print.clone(), instruction.clone()]
         }
 
         _ => return None,
     };
 
     Some(peephole)
+}
+
+/// Returns [`true`] if an instruction should be moved after a print statement.
+fn is_post_print(instruction: &Instruction) -> bool {
+    instruction.is_quiet()
+        && !matches!(
+            instruction,
+            Instruction::Pop
+                | Instruction::Duplicate
+                | Instruction::Swap
+                | Instruction::Unary(_)
+                | Instruction::Binary(_)
+                | Instruction::Assoc(_)
+        )
 }
