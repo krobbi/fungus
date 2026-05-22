@@ -19,6 +19,29 @@ impl Cfg {
         }
     }
 
+    /// Returns [`true`] if a position is reachable from a [`Label`].
+    pub fn is_position_reachable(&self, label: Label, x: u16, y: u16) -> bool {
+        let mut pending_labels = vec![label];
+        let mut checked_labels = HashSet::new();
+
+        while let Some(checked_label) = pending_labels.pop() {
+            if checked_labels.contains(&checked_label) {
+                continue;
+            }
+
+            checked_labels.insert(checked_label);
+            let basic_block = self.basic_block(checked_label);
+
+            if basic_block.positions.contains(&(x, y)) {
+                return true;
+            }
+
+            pending_labels.extend(basic_block.terminator.labels());
+        }
+
+        false
+    }
+
     /// Returns [`true`] if the `Cfg` contains a [`Label`].
     pub fn contains_label(&self, label: Label) -> bool {
         self.basic_blocks.contains_key(&label)

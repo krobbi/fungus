@@ -67,20 +67,6 @@ impl Display for Direction {
 
 impl Display for BasicBlock {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let mut positions: Vec<_> = self.positions.iter().copied().collect();
-        positions.sort_unstable_by_key(|(x, y)| (*y, *x));
-
-        for chunk in positions.chunks(8) {
-            let (first_x, first_y) = chunk[0];
-            write!(f, "; ({first_x}, {first_y})")?;
-
-            for (x, y) in &chunk[1..] {
-                write!(f, ", ({x}, {y})")?;
-            }
-
-            writeln!(f)?;
-        }
-
         for instruction in &self.instructions {
             writeln!(f, "{instruction}")?;
         }

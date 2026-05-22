@@ -50,7 +50,7 @@ impl<'ply> Interpreter<'ply> {
         loop {
             let basic_block = cfg.basic_block(label);
 
-            match self.interpret_basic_block(basic_block) {
+            match self.interpret_basic_block(cfg, basic_block) {
                 Flow::Halt => break,
                 Flow::InfiniteLoop => infinite_loop(),
                 Flow::Jump(next_label) => label = next_label,
@@ -65,13 +65,13 @@ impl<'ply> Interpreter<'ply> {
         flush_stdout();
     }
 
-    /// Interprets a [`BasicBlock`] and returns its [`Flow`].
-    fn interpret_basic_block(&mut self, basic_block: &BasicBlock) -> Flow {
+    /// Interprets a [`BasicBlock`] in a [`Cfg`] and returns its [`Flow`].
+    fn interpret_basic_block(&mut self, cfg: &Cfg, basic_block: &BasicBlock) -> Flow {
         for instruction in &basic_block.instructions {
             self.interpret_instruction(instruction);
         }
 
-        self.interpret_terminator(&basic_block.terminator)
+        self.interpret_terminator(cfg, &basic_block.terminator)
     }
 
     /// Interprets an [`Instruction`].
@@ -123,8 +123,8 @@ impl<'ply> Interpreter<'ply> {
         }
     }
 
-    /// Interprets a [`Terminator`] and returns its [`Flow`].
-    fn interpret_terminator(&mut self, terminator: &Terminator) -> Flow {
+    /// Interprets a [`Terminator`] in a [`Cfg`] and returns its [`Flow`].
+    fn interpret_terminator(&mut self, cfg: &Cfg, terminator: &Terminator) -> Flow {
         match terminator {
             Terminator::Halt => Flow::Halt,
             Terminator::InfiniteLoop => Flow::InfiniteLoop,
@@ -159,6 +159,7 @@ impl<'ply> Interpreter<'ply> {
                 if let (Ok(x), Ok(y)) = (x.0.try_into(), y.0.try_into())
                     && let Some(old_value) = self.playfield.put_value(x, y, value)
                     && value != old_value
+                    && cfg.is_position_reachable(*label, x, y)
                 {
                     let Label::State(state) = *label else {
                         unreachable!("put terminator should be a state");
