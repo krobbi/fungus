@@ -144,7 +144,7 @@ fn parse_command(cursor: Cursor<'_>) -> Item {
         ',' => Instruction::OutputChar.into(),
         '#' => cursor.step().step().into(),
         'g' => Instruction::Binary(BinOp::Get).into(),
-        'p' => Terminator::Put(cursor.step().into()).into(),
+        'p' => Terminator::PutChecked(cursor.step().into()).into(),
         '&' => Instruction::Push(Expr::InputInt).into(),
         '~' => Instruction::Push(Expr::InputChar).into(),
         '@' => Terminator::Halt.into(),

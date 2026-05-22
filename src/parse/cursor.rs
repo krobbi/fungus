@@ -74,6 +74,12 @@ impl From<Cursor<'_>> for Terminator {
 
 impl From<Cursor<'_>> for Label {
     fn from(value: Cursor<'_>) -> Self {
-        Self::State(value.state)
+        Self::State(value.into())
+    }
+}
+
+impl From<Cursor<'_>> for State {
+    fn from(value: Cursor<'_>) -> Self {
+        value.state
     }
 }

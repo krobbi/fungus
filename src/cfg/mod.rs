@@ -179,9 +179,9 @@ pub enum Terminator {
     /// Randomly branch to one of four [`Label`]s.
     Random(Label, Label, Label, Label),
 
-    /// Put a [`Value`] which potentially causes self-modifying code to the
-    /// [`Playfield`][crate::playfield::Playfield`].
-    Put(Label),
+    /// Put a [`Value`] to the [`Playfield`][crate::playfield::Playfield`] and
+    /// recompile at a [`State`] if self-modification occurred.
+    PutChecked(State),
 }
 
 impl Terminator {
@@ -189,11 +189,12 @@ impl Terminator {
     pub fn labels(&self) -> Box<[Label]> {
         match self {
             Self::Halt | Self::InfiniteLoop => Box::new([]),
-            Self::Jump(label) | Self::Put(label) => Box::new([*label]),
+            Self::Jump(label) => Box::new([*label]),
             Self::Branch(then_label, else_label) => Box::new([*then_label, *else_label]),
             Self::Random(right_label, down_label, left_label, up_label) => {
                 Box::new([*right_label, *down_label, *left_label, *up_label])
             }
+            Self::PutChecked(state) => Box::new([Label::State(*state)]),
         }
     }
 }

@@ -151,7 +151,9 @@ impl<'ply> Interpreter<'ply> {
 
                 Flow::Jump(label)
             }
-            Terminator::Put(label) => {
+            Terminator::PutChecked(state) => {
+                let state = *state;
+                let label = Label::State(state);
                 let y = self.pop();
                 let x = self.pop();
                 let value = self.pop();
@@ -159,15 +161,11 @@ impl<'ply> Interpreter<'ply> {
                 if let (Ok(x), Ok(y)) = (x.0.try_into(), y.0.try_into())
                     && let Some(old_value) = self.playfield.put_value(x, y, value)
                     && value != old_value
-                    && cfg.is_position_reachable(*label, x, y)
+                    && cfg.is_position_reachable(label, x, y)
                 {
-                    let Label::State(state) = *label else {
-                        unreachable!("put terminator should be a state");
-                    };
-
                     Flow::Recompile(state)
                 } else {
-                    Flow::Jump(*label)
+                    Flow::Jump(label)
                 }
             }
         }

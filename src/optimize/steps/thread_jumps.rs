@@ -11,8 +11,8 @@ pub fn run_step(cfg: &mut Cfg, ctx: &mut Context) {
     threaded_labels.insert(Label::Main);
 
     for basic_block in cfg.basic_blocks_unstable() {
-        if let Terminator::Put(label) = basic_block.terminator {
-            threaded_labels.insert(label);
+        if let Terminator::PutChecked(state) = basic_block.terminator {
+            threaded_labels.insert(Label::State(state));
         }
     }
 
@@ -120,7 +120,7 @@ fn collect_positions(cfg: &Cfg, labels: &[Label]) -> Vec<(u16, u16)> {
 /// [`Label`].
 fn redirect_terminator(terminator: &mut Terminator, source_labels: &[Label], target_label: Label) {
     match terminator {
-        Terminator::Halt | Terminator::InfiniteLoop | Terminator::Put(_) => (),
+        Terminator::Halt | Terminator::InfiniteLoop | Terminator::PutChecked(_) => (),
         Terminator::Jump(label) => redirect_label(label, source_labels, target_label),
         Terminator::Branch(then_label, else_label) => {
             redirect_label(then_label, source_labels, target_label);

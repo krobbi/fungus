@@ -106,7 +106,7 @@ impl Display for Terminator {
                 "{:16}{right_label}, {down_label}, {left_label}, {up_label}",
                 "random"
             ),
-            Self::Put(label) => write!(f, "{:16}{label}", "put"),
+            Self::PutChecked(label) => write!(f, "{:16}{label}", "put_checked"),
         }
     }
 }
