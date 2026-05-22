@@ -1,4 +1,5 @@
 use std::{
+    collections::VecDeque,
     io::{self, Write as _},
     thread,
     time::Duration,
@@ -19,12 +20,18 @@ pub fn interpret_cfg(cfg: &Cfg) {
 struct Interpreter {
     /// The stack of [`Value`]s.
     stack: Vec<Value>,
+
+    /// The buffer of input [`char`]s.
+    input_chars: VecDeque<char>,
 }
 
 impl Interpreter {
     /// Creates a new `Interpreter`.
     const fn new() -> Self {
-        Self { stack: Vec::new() }
+        Self {
+            stack: Vec::new(),
+            input_chars: VecDeque::new(),
+        }
     }
 
     /// Interprets a [`Cfg`].
@@ -139,7 +146,13 @@ impl Interpreter {
         match expr {
             Expr::Const(value) => *value,
             Expr::InputInt => read_line().trim().parse().map_or(Value(-1), Value),
-            Expr::InputChar => todo!("evaluating character input"),
+            Expr::InputChar => {
+                if self.input_chars.is_empty() {
+                    self.input_chars.extend(read_line().chars());
+                }
+
+                self.input_chars.pop_front().map_or(Value(-1), Into::into)
+            }
             Expr::Unary(op, rhs) => {
                 let rhs = self.eval_expr(rhs);
                 op.eval(rhs)
