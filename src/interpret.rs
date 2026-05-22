@@ -119,7 +119,17 @@ impl Interpreter {
 
                 Flow::Jump(label)
             }
-            Terminator::Random(_, _, _, _) => todo!("interpreting random terminator"),
+            Terminator::Random(right_label, down_label, left_label, up_label) => {
+                let label = match fastrand::u64(..) & 0b11 {
+                    0b00 => *right_label,
+                    0b01 => *down_label,
+                    0b10 => *left_label,
+                    0b11 => *up_label,
+                    _ => unreachable!("random number should be masked"),
+                };
+
+                Flow::Jump(label)
+            }
             Terminator::Put(_) => todo!("interpreting put terminator"),
         }
     }

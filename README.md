@@ -2,17 +2,13 @@
 Fungus is a [Befunge](https://esolangs.org/wiki/Befunge) interpreter which
 accelerates runtime performance with a parsing and optimization stage.
 
-> [!NOTE]
-> Fungus is being rewritten and is not yet functional.
-
 ## Usage
 Fungus is run from the command line:
 ```shell
 fungus [OPTIONS] <FILE>
 ```
 
-The Befunge source file at `<FILE>` will be loaded. Fungus is being rewritten,
-so the file will not yet be interpreted.
+The Befunge source file at `<FILE>` will be loaded and interpreted.
 
 ### Arguments
 | Argument | Usage            |
@@ -38,6 +34,7 @@ but no action will be performed.
 ## Dependencies
 These libraries are used:
 * [clap](https://crates.io/crates/clap) - Command line argument parsing
+* [fastrand](https://crates.io/crates/fastrand) - Interpreter randomness
 * [thiserror](https://crates.io/crates/thiserror) - Error handling attributes
 
 ## Credits
