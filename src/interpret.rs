@@ -7,17 +7,21 @@ use std::{
 
 use crate::{
     cfg::{BasicBlock, BinOp, Cfg, Expr, Instruction, Label, Terminator},
+    playfield::Playfield,
     value::Value,
 };
 
-/// Interprets a [`Cfg`].
-pub fn interpret_cfg(cfg: &Cfg) {
-    let mut interpreter = Interpreter::new();
+/// Interprets a [`Cfg`] with a [`Playfield`].
+pub fn interpret_cfg(cfg: &Cfg, playfield: &Playfield) {
+    let mut interpreter = Interpreter::new(playfield);
     interpreter.interpret_cfg(cfg);
 }
 
 /// A structure which interprets a [`Cfg`].
-struct Interpreter {
+struct Interpreter<'ply> {
+    /// The [`Playfield`].
+    playfield: &'ply Playfield,
+
     /// The stack of [`Value`]s.
     stack: Vec<Value>,
 
@@ -25,10 +29,11 @@ struct Interpreter {
     input_chars: VecDeque<char>,
 }
 
-impl Interpreter {
-    /// Creates a new `Interpreter`.
-    const fn new() -> Self {
+impl<'ply> Interpreter<'ply> {
+    /// Creates a new `Interpreter` from a [`Playfield`].
+    const fn new(playfield: &'ply Playfield) -> Self {
         Self {
+            playfield,
             stack: Vec::new(),
             input_chars: VecDeque::new(),
         }
@@ -192,7 +197,12 @@ impl Interpreter {
         }
 
         debug_assert_eq!(op, BinOp::Get, "unknown non-constant binary operator");
-        todo!("evaluating playfield access");
+
+        let (Ok(x), Ok(y)) = (lhs.0.try_into(), rhs.0.try_into()) else {
+            return Value::SPACE;
+        };
+
+        self.playfield.value(x, y).unwrap_or(Value::SPACE)
     }
 
     /// Pushes a [`Value`] to the stack.

@@ -24,7 +24,7 @@ impl Playfield {
         };
 
         let mut values =
-            vec![' '.into(); usize::from(width) * usize::from(height)].into_boxed_slice();
+            vec![Value::SPACE; usize::from(width) * usize::from(height)].into_boxed_slice();
 
         for (y, line) in source.lines().enumerate() {
             for (x, char) in line.chars().enumerate() {

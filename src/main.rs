@@ -36,7 +36,7 @@ fn run() -> Result<(), FungusError> {
         return Ok(());
     }
 
-    interpret::interpret_cfg(&cfg);
+    interpret::interpret_cfg(&cfg, &playfield);
     Ok(())
 }
 

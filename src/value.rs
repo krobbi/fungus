@@ -9,6 +9,9 @@ use std::{
 pub struct Value(pub i64);
 
 impl Value {
+    /// The `Value` for a space character.
+    pub const SPACE: Self = Self(' ' as i64);
+
     /// Returns [`true`] if the `Value` is not equal to `0`.
     pub const fn is_non_zero(self) -> bool {
         self.0 != 0
